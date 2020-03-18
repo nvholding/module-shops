@@ -118,6 +118,8 @@
 							</td>
 							<td> <input type="text" name="product_expried[]" class="form-control" value="{product.expried}"></td>
 							<td> 
+								<input name="ordered_quantity[]" type="hidden" class="oqty" value="{product.ordered_quantity}">
+								<input name="quantity_balance[]" type="hidden" class="oqty" value="{product.quantity_balance}">
 								<input type="hidden" name="product_net_cost[]" value="{product.cost}" id="pro_pc_net_{product.i}">
 								<input type="hidden" name="product_unit_cost[]" value="{product.cost}" id="pro_pc_cost_{product.i}">
 								<input type="text" name="product_real_unit_cost[]" class="form-control"value="{product.cost}" id="pro_pc_real_{product.i}">

@@ -118,7 +118,7 @@ if (!defined('NV_IS_FILE_ADMIN'))
 					
 	    			$row['product_tax'] = $nv_Request->get_title('product_tax', 'post', '');
 	    			$row['total_tax'] = $row['product_tax'] + $row['order_tax'];
-					//print_r($row);die;
+					/* print_r($row);die; */
 					$exc=$export->shopadd($row, $sh_items);
 	
 	            } else {
@@ -131,7 +131,7 @@ if (!defined('NV_IS_FILE_ADMIN'))
 	                    nv_insert_logs(NV_LANG_DATA, $module_name, 'Add Sales', ' ', $admin_info['userid']);
 	                } else {
 	                    nv_insert_logs(NV_LANG_DATA, $module_name, 'Edit Sales', 'ID: ' . $row['id'], $admin_info['userid']);
-	                }
+	                }/* die; */ 
 	                nv_redirect_location(NV_BASE_ADMINURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name . '&' . NV_OP_VARIABLE . '=sales_list' );
 	            }
 	    }
@@ -175,7 +175,7 @@ if (!defined('NV_IS_FILE_ADMIN'))
 		 
 	} elseif ($row['id'] > 0) {
 	    $row = $db->query('SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_sales WHERE id=' . $row['id'])->fetch();
-	    $row['project_title'] = $db->query('SELECT title FROM ' . $db_config['prefix'] . '_' . $module_data . '_project WHERE projectid=' . $row['projectid'])->fetch(5)->title;
+	    //$row['project_title'] = $db->query('SELECT title FROM ' . $db_config['prefix'] . '_' . $module_data . '_project WHERE projectid=' . $row['projectid'])->fetch(5)->title;
 		$row['product_id'] = 0;
 		$row['project_id'] = $row['projectid'];
 		$store_id= $db->query('SELECT store_id FROM ' . $db_config['prefix'] . '_' . $module_data . '_warehouses WHERE id = ' . $row['warehouse_id'])->fetch();
@@ -246,48 +246,38 @@ if (!defined('NV_IS_FILE_ADMIN'))
 		
 		$i = 0;
 		if($items != array()){
-			
-			if(!empty($list_product)){
-				foreach($list_product as $products_sh)
-				{
-					
-					foreach($items as $item)
-					{
-						
-						if($item->product_id == $products_sh->id){
-							//print_r($item);
-							$i++;
-							if($products_sh->tax_method ==1) {
-								if($products_sh->tax_rate == 2){
-									$tax_per = $array_tax_rate_storehouse[$products_sh->tax_rate]['rate']/100;
-									$tax = 1 + $tax_per;
-								}
-							}else{
-								$tax = 1;
-								$tax_per = 0;
-							}
-							$xtpl->assign('product', array(
-								'i' => $i,
-								'id' => $products_sh->id,
-								'code' => $products_sh->code,
-								'title' => $products_sh->name,
-								'price' => storehouse_number_format($item->real_unit_price,0),
-								'quantity' => storehouse_number_format($item->quantity,0),
-								'sale_unit' => $products_sh->sale_unit,
-								'discount' => 0,
-								'tax_id' => $products_sh->tax_rate,
-								'tax' => $tax_per*100,
-								'price_tax' => $item->real_unit_price-$item->real_unit_price/$tax,
-								'total' => storehouse_number_format($item->real_unit_price*$item->quantity,0)
-								
-							));
-							$xtpl->assign('products_id', $products_sh->id);
-							$xtpl->assign('products_code', $products_sh->code);
-							$xtpl->parse('main.store.products');
-						}
-						
+			foreach($items as $item)
+			{
+				/* print_r($item);  */
+				$i++;
+				 if($item->tax_method ==1) {
+					if($item->tax_rate == 2){
+						$tax_per = $array_tax_rate_storehouse[$item->tax_rate]['rate']/100;
+						$tax = 1 + $tax_per;
 					}
-				}
+				}else{
+					$tax = 1;
+					$tax_per = 0;
+				} 
+				$xtpl->assign('product', array(
+					'i' => $i,
+					'id' => $item->product_id,
+					'code' => $item->product_code,
+					'title' => $item->product_name,
+					'price' => storehouse_number_format($item->real_unit_price,0),
+					'quantity' => storehouse_number_format($item->quantity,0),
+					'sale_unit' => $item->sale_unit,
+					'discount' => 0,
+					'tax_id' => $item->tax_rate,
+					'tax' => $tax_per*100,
+					'price_tax' => $item->real_unit_price-$item->real_unit_price/$tax,
+					'total' => storehouse_number_format($item->real_unit_price*$item->quantity,0)
+					
+				));
+				$xtpl->assign('products_id', $item->product_id);
+				$xtpl->assign('products_code', $item->product_code);
+				$xtpl->parse('main.store.products');
+				
 			}
 		}
 		$num = $i;
@@ -337,8 +327,15 @@ if (!defined('NV_IS_FILE_ADMIN'))
 		    $xtpl->parse('main.store.error');
 		}
 		foreach ($list_warehouse_of_store as $warehouse) {
-			$xtpl->assign('WAREHOUSE', $array_warehouses_storehouse[$warehouse->id]);
-			$xtpl->parse('main.store.select_warehouse_id');
+			if($warehouse->sales ==1){
+				if($warehouse->id == $row['warehouse_id']){
+					$array_warehouses_storehouse[$warehouse->id]['selected'] = 'selected="selected"';
+				}else{
+					$array_warehouses_storehouse[$warehouse->id]['selected'] = '';
+				}
+				$xtpl->assign('WAREHOUSE', $array_warehouses_storehouse[$warehouse->id]);
+				$xtpl->parse('main.store.select_warehouse_id');
+			}
 		}
 		if(!empty($row['id']))
 			$xtpl->parse('main.store.project_value');

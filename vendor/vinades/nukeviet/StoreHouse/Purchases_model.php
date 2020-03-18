@@ -269,7 +269,7 @@ class Purchases_model extends Model {
 					$stmt -> bindParam(':sgst', $item['sgst'], PDO::PARAM_STR);
 					$stmt -> bindParam(':igst', $item['igst'], PDO::PARAM_STR);
 					$exc = $stmt -> execute();
-
+					
 				} catch(PDOException $e) {
 					trigger_error($e -> getMessage());
 					die($e -> getMessage());
@@ -331,6 +331,7 @@ class Purchases_model extends Model {
 			foreach ($items as $item) {
 				$item['purchase_id'] = $id;
 				$item['option_id'] = !empty($item['option_id']) && is_numeric($item['option_id']) ? $item['option_id'] : NULL;
+				/* print_r($item); */
 				try {
 					if (empty($item['id'])) {
 						$stmt = $this -> db -> prepare('INSERT INTO ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items (purchase_id, transfer_id, product_id, product_code, product_name, option_id, net_unit_cost, quantity, warehouse_id, item_tax, tax_rate_id, tax, discount, item_discount, expiry, subtotal, quantity_balance, date, status, unit_cost, real_unit_cost, quantity_received, supplier_part_no, purchase_item_id, product_unit_id, product_unit_code, unit_quantity, gst, cgst, sgst, igst) VALUES (:purchase_id, :transfer_id, :product_id, :product_code, :product_name, :option_id, :net_unit_cost, :quantity, :warehouse_id, :item_tax, :tax_rate_id, :tax, :discount, :item_discount, :expiry, :subtotal, :quantity_balance, :date, :status, :unit_cost, :real_unit_cost, :quantity_received, :supplier_part_no, :purchase_item_id, :product_unit_id, :product_unit_code, :unit_quantity, :gst, :cgst, :sgst, :igst)');

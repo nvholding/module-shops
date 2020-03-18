@@ -37,7 +37,7 @@
 									<select class="form-control w300" name="warehouse_id" id="warehouse_id" >
 									
 									<!-- BEGIN: select_warehouse_id -->
-										<option value="{WAREHOUSE.id}" > {WAREHOUSE.name} </option>
+										<option value="{WAREHOUSE.id}" {WAREHOUSE.selected}> {WAREHOUSE.name} </option>
 									<!-- END: select_warehouse_id -->
 									</select>
 								</td>
@@ -55,13 +55,6 @@
 										<option value="{CUSTOMER.key}" {CUSTOMER.selected}>{CUSTOMER.title}</option>
 										<!-- END: select_customer_id -->
 									</select>
-								</td>
-							</tr>	
-							<tr class="required">
-								<td style="width:200px">{LANG.project}</td>
-								<td>
-									      <select class="form-control " name="project_id" id="project_id">
-            </select>
 								</td>
 							</tr>
 							<tr class="required">
@@ -127,9 +120,9 @@
 						<tr id="pro_s_{product.i}">
 							<td> <input type="checkbox" value = "{product.i}"  name="idcheck[]" class="checkib"/></td>
 							<td> <select class="form-control" name="product[]" id="products_id_{product.i}" ></select>
-								<input type="hidden" name="product_id[]" class="form-control" id="pro_pc_id_{product.i}" />
-								<input type="hidden" name="product_code[]" value="{product.code}" id="pro_pc_name_{product.i}">
-								<input type="hidden" name="product_name[]" value="{product.title}" id="pro_pc_code_{product.i}">
+								<input type="hidden" name="product_id[]" class="form-control" id="pro_sl_id_{product.i}" value ="{product.id}"/>
+								<input type="hidden" name="product_code[]" value="{product.code}" id="pro_sl_name_{product.i}">
+								<input type="hidden" name="product_name[]" value="{product.title}" id="pro_sl_code_{product.i}">
 								<script type="text/javascript">$(document).ready(function() {product_sales_select("products_id_{product.i}",{product.i},{product.id}); $('#products_id_{product.i}').prop('disabled', true); list_pro_id.push('{product.id}'); });</script>
 							</td>
 							<td> 
@@ -138,15 +131,15 @@
 								
 							</td>
 							<td> 
-								<input type="hidden" name="product_net_price[]" value="{product.price}" id="pro_pc_net_{product.i}">
-								<input type="hidden" name="product_unit_price[]" value="{product.price}" id="pro_pc_price_{product.i}">
-								<input type="text" class="form-control" name="product_real_unit_price[]" value="{product.price}" id="pro_pc_real_price_{product.i}">
-								<script type="text/javascript">$("#pro_pc_real_price_{product.i}").on("change", function () {var quantity_input = $("#pro_pc_quantity_{product.i}").val(); var quantity = Number(quantity_input.replace(/,/gi, "")); var price_input = $("#pro_pc_real_price_{product.i}").val();  var price = Number(price_input.replace(/,/gi, "")); var total = price*quantity; $("#pro_pc_total_{product.i}").val(number_format(total,0,'.',',')); total_sale();}); </script>
+								<input type="hidden" name="product_net_price[]" value="{product.price}" id="pro_sl_net_{product.i}">
+								<input type="hidden" name="product_unit_price[]" value="{product.price}" id="pro_sl_price_{product.i}">
+								<input type="text" class="form-control" name="product_real_unit_price[]" value="{product.price}" id="pro_sl_real_price_{product.i}">
+								<script type="text/javascript">$("#pro_sl_real_price_{product.i}").on("change", function () {var quantity_input = $("#pro_sl_quantity_{product.i}").val(); var quantity = Number(quantity_input.replace(/,/gi, "")); var price_input = $("#pro_sl_real_price_{product.i}").val();  var price = Number(price_input.replace(/,/gi, "")); var total = price*quantity; $("#pro_sl_total_{product.i}").val(number_format(total,0,'.',',')); total_sale();}); </script>
 							</td>
 							<td>
-								<input type="text" class="form-control" name="product_base_quantity[]" value="{product.quantity}" id="pro_pc_quantity_{product.i}">
-								<input type="hidden" name="product_unit[]" value="{product.sale_unit}" id="pro_pc_unit_{product.i}">
-								<script type="text/javascript">$("#pro_pc_quantity_{product.i}").on("change", function () {var quantity_input = $("#pro_pc_quantity_{product.i}").val(); var quantity = Number(quantity_input.replace(/,/gi, "")); var price_input = $("#pro_pc_real_price_{product.i}").val();  var price = Number(price_input.replace(/,/gi, "")); var total = price*quantity; $("#pro_pc_total_{product.i}").val(number_format(total,0,'.',',')); total_sale();}); </script>
+								<input type="text" class="form-control" name="product_base_quantity[]" value="{product.quantity}" id="pro_sl_quantity_{product.i}">
+								<input type="hidden" name="product_unit[]" value="{product.sale_unit}" id="pro_sl_unit_{product.i}">
+								<script type="text/javascript">$("#pro_sl_quantity_{product.i}").on("change", function () {var quantity_input = $("#pro_sl_quantity_{product.i}").val(); var quantity = Number(quantity_input.replace(/,/gi, "")); var price_input = $("#pro_sl_real_price_{product.i}").val();  var price = Number(price_input.replace(/,/gi, "")); var total = price*quantity; $("#pro_sl_total_{product.i}").val(number_format(total,0,'.',',')); total_sale();}); </script>
 							</td>
 							<td><input type="hidden" name="product_discount[]" value="{product.discount}"> {product.discount}</td>
 							<td class="form-control" ><input type="hidden" name="product_tax_rate[]" value="{product.tax_id}">
@@ -155,7 +148,7 @@
 								( {product.tax}%) <br>  {product.cost_tax} 
 							</td>
 							<td>
-								<input type="text" class="form-control" name="product_total[]" id="pro_pc_total_{product.i}" value=" {product.total}"> 
+								<input type="text" class="form-control" name="product_total[]" id="pro_sl_total_{product.i}" value=" {product.total}"> 
 							</td>
 							<td> </td>
 						</tr>
@@ -363,12 +356,12 @@
         	total_sale();
 		<!-- END: project_value -->
 	function total_sale(){
-		var pro_pc_total = $.cookie('products_sales_total');
+		var pro_sl_total = $.cookie('products_sales_total');
 		var total_sales=0;
 		var quantity_sales=0;
-		for(i=1;i<=pro_pc_total;i++){
-			var price = $('#pro_pc_total_' + i).val();
-			var quantity = $('#pro_pc_quantity_' + i).val();
+		for(i=1;i<=pro_sl_total;i++){
+			var price = $('#pro_sl_total_' + i).val();
+			var quantity = $('#pro_sl_quantity_' + i).val();
 			var subtotal =0;
 			var subquantity =0;
 			if(price !== undefined && price !== null) {

@@ -33,6 +33,9 @@ $row['store_id'] = $_SESSION[$module_data . '_store_id'];
     $row['supplier_id'] = $nv_Request->get_int('supplier_id', 'post', 0);
     $row['warehouse_id'] = $nv_Request->get_int('warehouse_id', 'post', 0);
     $row['warehouse_id_new'] = $nv_Request->get_int('warehouse_id_new', 'post', 0);
+	
+	$row['from_warehouse_id'] = $row['warehouse_id'];
+	$row['to_warehouse_id'] = $row['warehouse_id_new'];
     $row['note'] = $nv_Request->get_title('note', 'post', '');
     $row['total'] = $nv_Request->get_title('total', 'post', '');
     $row['product_discount'] = $nv_Request->get_title('product_discount', 'post', '');
@@ -150,6 +153,8 @@ $row['store_id'] = $_SESSION[$module_data . '_store_id'];
     $row['attachment'] = '';
     $row['payment_term'] = 0;
     $row['product_id'] = 0;
+	$row['from_warehouse_id'] = 0;
+	$row['to_warehouse_id'] = 0;
 }
 
 if (empty($row['date'])) {
@@ -205,7 +210,7 @@ $xtpl->assign('OP', $op);
 	
 	$list_product = $storehouse_product->products_model->getAllProducts();
 	
-	$items = $storehouse_product->products_model->getAllPurchaseItems($row['id']);
+	$items = $storehouse_product->products_model->getTransferItems($row['id']);
 	$i = 0;
 	if($items != array()){
 		foreach($list_product as $products_sh)
@@ -224,6 +229,7 @@ $xtpl->assign('OP', $op);
 						$tax_per = 0;
 					}
 					$xtpl->assign('product', array(
+				        'i' => $i,
 				        'id' => $products_sh->id,
 				        'code' => $products_sh->code,
 				        'title' => $products_sh->name,
@@ -274,8 +280,21 @@ $xtpl->assign('OP', $op);
 	    $xtpl->parse('main.store.select_supplier_id');
 	}
 	foreach ($list_warehouse_of_store as $w_id => $warehouse) {
+		if($warehouse->id == $row['from_warehouse_id']){
+				$array_warehouses_storehouse[$warehouse->id]['selected'] = 'selected="selected"';
+			}else{
+				$array_warehouses_storehouse[$warehouse->id]['selected'] = '';
+			}
 			$xtpl->assign('WAREHOUSE', $array_warehouses_storehouse[$warehouse->id]);
 			$xtpl->parse('main.store.select_warehouse_id');
+		}
+	foreach ($list_warehouse_of_store as $w_id => $warehouse) {
+		if($warehouse->id == $row['to_warehouse_id']){
+				$array_warehouses_storehouse[$warehouse->id]['selected'] = 'selected="selected"';
+			}else{
+				$array_warehouses_storehouse[$warehouse->id]['selected'] = '';
+			}
+			$xtpl->assign('WAREHOUSE', $array_warehouses_storehouse[$warehouse->id]);
 			$xtpl->parse('main.store.warehouse_id_new');
 		}
 	foreach ($array_tax_rate_storehouse as $value) {

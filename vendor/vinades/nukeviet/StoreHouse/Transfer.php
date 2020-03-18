@@ -37,7 +37,7 @@ class Transfer extends MY_Controller {
 	function add()    {
 		global $global_config;
     	if ($this->form_validation->run()) {
-    		$transfer_no = $this->input->get_title('reference_no','post','') ? $this->input->get_title('reference_no') : $this->site->getReference('to');
+    		$transfer_no = $this->input->get_title('reference_no','post','') ? $this->input->get_title('reference_no') : $this->site->getReference('orto');
 			if (preg_match('/^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/', $this->input->get_string('date', 'post', 0), $m))     {
 		        $_hour = $this->input->get_int('date_hour', 'post');		        $_min = $this->input->get_int('date_min', 'post');
 		        $date = mktime($_hour, $_min, 0, $m[2], $m[1], $m[3]);
@@ -130,6 +130,7 @@ class Transfer extends MY_Controller {
 						'product_unit_id' => $item_unit,                        
 						'product_unit_code' => $unit->code,                        
 						'unit_quantity' => $item_unit_quantity,                        
+						'quantity_received' => $item_quantity,                        
 						'quantity_balance' => $item_quantity,                        
 						'warehouse_id' => $to_warehouse,                        
 						'item_tax' => $pr_item_tax,                        
@@ -256,4 +257,13 @@ class Transfer extends MY_Controller {
 			}
 		}
 	}
+	function delete($id = NULL)
+    {
+
+        $id=$this->input->get_int('delete_id','post',0);	
+
+        if ($this->transfers_model->deleteTransfer($id)) {
+			return true;
+        }
+    }
 }

@@ -11,6 +11,7 @@ class Reports_model extends Model
     
 	public function getInventory($start_date, $end_date, $type = 0)
     {
+		global $global_config;
     	$date_begin_period_start =0;
         if (empty($start_date)) {
         	$start_date = date("d",NV_CURRENTTIME)."/".date("m",NV_CURRENTTIME)."/".date("Y",NV_CURRENTTIME);
@@ -56,15 +57,15 @@ class Reports_model extends Model
 		//print_r($date_begin_period_start . '/' . $date_begin_period_end . '/' . $date_in_period_start . '/' . $date_in_period_end);
 		//print_r($begin_period_sales . '/' . $in_period_sales );
 		
-    	$rpproduct=$this->db->sqlreset()->select ('products.id,products.code, products.name,COALESCE( PCosts.purchasedQty, 0 ) as PurchasedQty, COALESCE( PSales.soldQty, 0 ) as SoldQty,COALESCE( PCosts.balacneQty, 0 ) as BalacneQty,  (COALESCE( PSales.totalSale, 0 ) - COALESCE( PCosts.totalPurchase, 0 )) as ProfitBg,  (COALESCE( PurchasedQty, 0 ) - COALESCE( SoldQty, 0 )) as BeginPeriod, COALESCE( PCosts2.PurchasedQty2, 0 ) as PurchasedQtyIn, COALESCE( PSales2.SoldQty2, 0 ) as SoldQtyIn, COALESCE( PSales2.totalSale2, 0 ) as totalSaleIn, (0 - COALESCE( PCosts2.totalPurchase2, 0 )) as totalPurchaseIn, (COALESCE( PSales2.totalSale2, 0 ) - COALESCE( PCosts2.totalPurchase2, 0 )) as ProfitIn,  (COALESCE( PCosts2.purchasedQty2, 0 ) - COALESCE( PSales2.soldQty2, 0 )) as InPeriod, ((COALESCE( (COALESCE( PSales.totalSale, 0 ) - COALESCE( PCosts.totalPurchase, 0 )), 0 ) +  COALESCE( PSales2.totalSale2, 0 ) - COALESCE( PCosts2.totalPurchase2, 0 ) )) as ProfitEnd, ((COALESCE( (COALESCE( PurchasedQty, 0 ) - COALESCE( SoldQty, 0 )), 0 ) - COALESCE( (COALESCE( PSales2.soldQty2, 0 ) - COALESCE( PCosts2.purchasedQty2, 0 )), 0 ))) as EndPeroid')
+    	$rpproduct=$this->db->sqlreset()->select ('products.id,products.product_code code, products.' . NV_LANG_DATA . '_title name,COALESCE( PCosts.purchasedQty, 0 ) as PurchasedQty, COALESCE( PSales.soldQty, 0 ) as SoldQty,COALESCE( PCosts.balacneQty, 0 ) as BalacneQty,  (COALESCE( PSales.totalSale, 0 ) - COALESCE( PCosts.totalPurchase, 0 )) as ProfitBg,  (COALESCE( PurchasedQty, 0 ) - COALESCE( SoldQty, 0 )) as BeginPeriod, COALESCE( PCosts2.PurchasedQty2, 0 ) as PurchasedQtyIn, COALESCE( PSales2.SoldQty2, 0 ) as SoldQtyIn, COALESCE( PSales2.totalSale2, 0 ) as totalSaleIn, (0 - COALESCE( PCosts2.totalPurchase2, 0 )) as totalPurchaseIn, (COALESCE( PSales2.totalSale2, 0 ) - COALESCE( PCosts2.totalPurchase2, 0 )) as ProfitIn,  (COALESCE( PCosts2.purchasedQty2, 0 ) - COALESCE( PSales2.soldQty2, 0 )) as InPeriod, ((COALESCE( (COALESCE( PSales.totalSale, 0 ) - COALESCE( PCosts.totalPurchase, 0 )), 0 ) +  COALESCE( PSales2.totalSale2, 0 ) - COALESCE( PCosts2.totalPurchase2, 0 ) )) as ProfitEnd, ((COALESCE( (COALESCE( PurchasedQty, 0 ) - COALESCE( SoldQty, 0 )), 0 ) - COALESCE( (COALESCE( PSales2.soldQty2, 0 ) - COALESCE( PCosts2.purchasedQty2, 0 )), 0 ))) as EndPeroid')
     	->from($this->db_systems . '.' . $this->db_prefix . '_san_pham_rows products')
-    	->join('LEFT JOIN ( SELECT si.product_id, SUM( si.quantity ) soldQty, SUM( si.subtotal ) totalSale FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sales s JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items si on s.id = si.sale_id ' . $begin_period_sales . ' GROUP BY si.product_id) PSales ON products.id = PSales.product_id 
-				LEFT JOIN (SELECT product_id, SUM(CASE WHEN pi.purchase_id IS NOT NULL THEN quantity ELSE 0 END) as purchasedQty, SUM(quantity_balance) as balacneQty, SUM( unit_cost * quantity_balance ) balacneValue, SUM( (CASE WHEN pi.purchase_id IS NOT NULL THEN (pi.subtotal) ELSE 0 END) ) totalPurchase FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items pi LEFT JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchases p on p.id = pi.purchase_id WHERE p.status != 2 AND p.status != 3 ' . $begin_period_purchases . ' GROUP BY pi.product_id ) PCosts ON products.id = PCosts.product_id
-				LEFT JOIN ( SELECT si2.product_id, SUM( si2.quantity ) soldQty2, SUM( si2.subtotal ) totalSale2 FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sales s2 JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items si2 on s2.id = si2.sale_id ' . $in_period_sales . ' GROUP BY si2.product_id) PSales2 ON products.id = PSales2.product_id 
-				LEFT JOIN (SELECT product_id, SUM(CASE WHEN pi2.purchase_id IS NOT NULL THEN quantity ELSE 0 END) as purchasedQty2, SUM(quantity_balance) as balacneQty2, SUM( unit_cost * quantity_balance ) balacneValue2, SUM( (CASE WHEN pi2.purchase_id IS NOT NULL THEN (pi2.subtotal) ELSE 0 END) ) totalPurchase2 FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items pi2 LEFT JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchases p2 on p2.id = pi2.purchase_id WHERE p2.status != 2 AND p2.status != 3 ' . $in_period_purchases . ' GROUP BY pi2.product_id ) PCosts2 ON products.id = PCosts2.product_id') 
- 		->group('products.code, PSales.soldQty, PSales.totalSale, PCosts.purchasedQty, PCosts.totalPurchase, PCosts.balacneQty, PCosts.balacneValue, PCosts2.purchasedQty2,PSales2.soldQty2')
+    	->join('LEFT JOIN ( SELECT si.product_id, SUM( si.quantity ) soldQty, SUM( si.subtotal ) totalSale FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sales s JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items si on s.id = si.sale_id AND s.saidsite = ' .$global_config['idsite']. ' '. $begin_period_sales . ' GROUP BY si.product_id) PSales ON products.id = PSales.product_id 
+				LEFT JOIN (SELECT product_id, SUM(CASE WHEN pi.purchase_id IS NOT NULL THEN quantity ELSE 0 END) as purchasedQty, SUM(quantity_balance) as balacneQty, SUM( unit_cost * quantity_balance ) balacneValue, SUM( (CASE WHEN pi.purchase_id IS NOT NULL THEN (pi.subtotal) ELSE 0 END) ) totalPurchase FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items pi LEFT JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchases p on p.id = pi.purchase_id WHERE p.status != 2 AND p.status != 3 AND pi.puiidsite = ' .$global_config['idsite']. ' ' . $begin_period_purchases . ' GROUP BY pi.product_id ) PCosts ON products.id = PCosts.product_id
+				LEFT JOIN ( SELECT si2.product_id, SUM( si2.quantity ) soldQty2, SUM( si2.subtotal ) totalSale2 FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sales s2 JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items si2 on s2.id = si2.sale_id AND si2.saiidsite = ' .$global_config['idsite']. ' ' . $in_period_sales . ' GROUP BY si2.product_id) PSales2 ON products.id = PSales2.product_id 
+				LEFT JOIN (SELECT product_id, SUM(CASE WHEN pi2.purchase_id IS NOT NULL THEN quantity ELSE 0 END) as purchasedQty2, SUM(quantity_balance) as balacneQty2, SUM( unit_cost * quantity_balance ) balacneValue2, SUM( (CASE WHEN pi2.purchase_id IS NOT NULL THEN (pi2.subtotal) ELSE 0 END) ) totalPurchase2 FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items pi2 LEFT JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchases p2 on p2.id = pi2.purchase_id WHERE p2.status != 2 AND p2.status != 3 AND p2.puidsite = ' .$global_config['idsite']. ' ' . $in_period_purchases . ' GROUP BY pi2.product_id ) PCosts2 ON products.id = PCosts2.product_id') 
+ 		->group('products.product_code, PSales.soldQty, PSales.totalSale, PCosts.purchasedQty, PCosts.totalPurchase, PCosts.balacneQty, PCosts.balacneValue, PCosts2.purchasedQty2,PSales2.soldQty2')
 		->where('type = "material"');
-		//die($this->db->sql());
+		/* die($this->db->sql()); */
 		$q = $this->db->query($this->db->sql());
 		if ($q->rowCount() > 0) {
 			$data_list=array();
@@ -149,6 +150,7 @@ class Reports_model extends Model
     }
 	public function getStockValue($store_id= NULL)
     {
+		global $global_config;
     	$all_warehouse=array();
     	if($store_id > 0) {
     		$all_warehouse = $this->site->getAllWarehouses($store_id);
@@ -191,9 +193,10 @@ class Reports_model extends Model
     }
 	public function getWarehouseTotals($store_id = NULL)
     {
+		global $global_config;
     	$all_warehouse=array();
     	if($store_id > 0) {
-    		$all_warehouse = $this->site->getAllWarehouses($store_id);
+    		$all_warehouse = $this->site->getAllWarehouses( $store_id);
 			
 			if($all_warehouse != FALSE){
 	    		foreach ( $all_warehouse as $key => $value) {

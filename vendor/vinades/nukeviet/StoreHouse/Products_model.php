@@ -17,7 +17,7 @@ class Products_model extends Model
     	}
 		//print_r('SELECT p.* FROM ' . $this->db_prefix . '_san_pham_rows p LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_product_of_category poc ON p.id = poc.product_id ' .$where . ' GROUP BY p.id');
 		//die('SELECT * FROM ' . $this->db_prefix . '_san_pham_rows ' .$where);
-        $q = $this->db->query('SELECT p.* FROM ' . $this->db_systems . '.' . $this->db_prefix . '_san_pham_rows p ');
+        $q = $this->db->query('SELECT p.*, p.product_code code, p.' . NV_LANG_DATA . '_title name FROM ' . $this->db_systems . '.' . $this->db_prefix . '_san_pham_rows p ');
         //print_r('SELECT p.* FROM ' . $this->db_prefix . '_san_pham_rows p LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_product_of_category poc ON p.id = poc.product_id ' .$where . ' GROUP BY p.id');
         if ($q->rowCount() > 0) {
             return $q->fetchAll(5);
@@ -32,6 +32,25 @@ class Products_model extends Model
             	LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_product_variants as product_variants ON product_variants.id=purchase_items.option_id
                 LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_tax_rates as tax_rates ON tax_rates.id=purchase_items.tax_rate_id')
 			->where('purchase_id = ' . $purchase_id)
+            ->group('purchase_items.id')
+            ->order('id asc');
+        $q = $this->db->query($this->db->sql());
+        if ($q->rowCount() > 0) {
+            foreach (($q->fetchAll()) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
+	public function getTransferItems($transfer_id)
+    {
+        $this->db->select('purchase_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, products.product_unit, products.' . NV_LANG_DATA . '_bodytext as details, product_variants.name as variant, products.hsn_code as hsn_code, products.second_name as second_name')
+            ->from($this->db_prefix . '_' . $this->mod_data . '_purchase_items as purchase_items')
+            ->join('LEFT JOIN ' . $this->db_prefix . '_san_pham_rows as products ON products.id=purchase_items.product_id 
+            	LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_product_variants as product_variants ON product_variants.id=purchase_items.option_id
+                LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_tax_rates as tax_rates ON tax_rates.id=purchase_items.tax_rate_id')
+			->where('transfer_id = ' . $transfer_id)
             ->group('purchase_items.id')
             ->order('id asc');
         $q = $this->db->query($this->db->sql());

@@ -105,7 +105,7 @@
 								<input type="hidden" name="product_id[]" value="{product.id}" class="form-control" id="pro_tf_id_{product.i}" />
 								<input type="hidden" name="product_code[]" value="{product.code}" id="pro_tf_code_{product.i}">
 								<input type="hidden" name="product_name[]" value="{product.title}" id="pro_tf_name_{product.i}">
-								<script type="text/javascript">$(document).ready(function() {product_select_transfer("products_id_{product.i}",{product.i},{product.id}); $('#products_id_{product.i}').prop('disabled', true); list_pro_id.push('{product.id}'); }); 
+								<script type="text/javascript">$(document).ready(function() {product_select_transfer("products_id_{product.i}",{product.i},{product.id}); $('#products_id_{product.i}').prop('disabled', true);  }); 
 			 </script> 
 							</td>
 							<td> <input type="text" name="product_expried[]" class="form-control" value="{product.expried}"></td>

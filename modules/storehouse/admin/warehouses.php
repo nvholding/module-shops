@@ -43,7 +43,7 @@ if ($nv_Request->isset_request('submit', 'post')) {
 	else {
 		$row['store_id'] = 0;
 	} */
-	$row['store_id'] = 0;
+	$row['store_id'] = $global_config['idsite'];
 	if (empty($row['code'])) {
 		$error[] = $lang_module['error_required_code'];
 	} elseif (empty($row['name'])) {
@@ -57,9 +57,9 @@ if ($nv_Request->isset_request('submit', 'post')) {
 	if (empty($error)) {
 		try {
 			if (empty($row['id'])) {
-				$stmt = $db->prepare('INSERT INTO ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_warehouses (code, name, parentid, address, map, phone, email, price_group_id, store_id, whidsite, whparentid) VALUES (:code, :name, :parentid, :address, :map, :phone, :email, :price_group_id, :store_id, :idsite, :parentid)');
-				$stmt->bindParam(':idsite', $global_config['idsite'], PDO::PARAM_INT);
-				$stmt->bindParam(':parentid', $site_parent, PDO::PARAM_INT);
+				$stmt = $db->prepare('INSERT INTO ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_warehouses (code, name, parentid, address, map, phone, email, price_group_id, store_id, whidsite, whparentid) VALUES (:code, :name, :parentid, :address, :map, :phone, :email, :price_group_id, :store_id, :whidsite, :whparentid)');
+				$stmt->bindParam(':whidsite', $global_config['idsite'], PDO::PARAM_INT);
+				$stmt->bindParam(':whparentid', $site_parent, PDO::PARAM_INT);
 			} else {
 				$stmt = $db->prepare('UPDATE ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_warehouses SET code = :code, name = :name, parentid = :parentid, address = :address, map = :map, phone = :phone, email = :email, price_group_id = :price_group_id, store_id = :store_id WHERE id=' . $row['id']);
 			}
@@ -133,7 +133,7 @@ if (!$nv_Request->isset_request('id', 'post,get')) {
 	$per_page = 20;
 	$page = $nv_Request->get_int('page', 'post,get', 1);
 	
-	$where = 'idsite = ' . $global_config['idsite'] . '';
+	$where = 'whidsite = ' . $global_config['idsite'] . '';
 	$db->sqlreset()
 		->select('COUNT(*)')
 		->from($db_config['dbsystem'] . '.' . '' . $db_config['prefix'] . '_' . $module_data . '_warehouses')
@@ -161,7 +161,6 @@ if (!$nv_Request->isset_request('id', 'post,get')) {
 		->limit($per_page)
 		->offset(($page - 1) * $per_page);
 	$sth = $db->prepare($db->sql());
-	print($db->sql());
 	if (!empty($q)) {
 		$sth->bindValue(':q_code', '%' . $q . '%');
 		$sth->bindValue(':q_name', '%' . $q . '%');
@@ -211,6 +210,8 @@ if ($show_view) {
 	}
 	$number = $page > 1 ? ($per_page * ($page - 1)) + 1 : 1;
 	while ($view = $sth->fetch()) {
+		$view['purcheck'] = ($view['purchases'] == 1) ? 'checked="checked"' : '' ;
+		$view['salecheck'] = ($view['sales'] == 1) ? 'checked="checked"' : '' ;
 		$view['number'] = $number++;
 		if($view['price_group_id'] != 0)
 			$view['price_group_id'] = $array_price_group_id_storehouse[$view['price_group_id']]['name'];

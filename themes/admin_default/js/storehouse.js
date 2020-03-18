@@ -675,43 +675,43 @@ function add_product_transfer_line(){
   return false; 
 }
 function add_product_sales_line(){
-	var pro_pc_total = $.cookie('products_sales_total');
-	pro_pc_total = parseInt(pro_pc_total )+ 1;
+	var pro_sl_total = $.cookie('products_sales_total');
+	pro_sl_total = parseInt(pro_sl_total )+ 1;
 	var unit = '<!-- BEGIN:products_unit_tmp --><option {products_unit.selected} value="{products_unit.id}">{products_unit.name}</option><!-- END:products_unit_tmp -->';
 	var product = '<!-- BEGIN:products_tmp --><option {products.selected} value="{products.id}">{products.name}</option><!-- END:products_tmp -->';
-	var html = '<tr id="pro_pc_' + pro_pc_total + '">' + '<td>' + 
-					'<input type="checkbox" value = "' + pro_pc_total + '"  name="idcheck[]" class="checkib"/>' +
+	var html = '<tr id="pro_sl_' + pro_sl_total + '">' + '<td>' + 
+					'<input type="checkbox" value = "' + pro_sl_total + '"  name="idcheck[]" class="checkib"/>' +
 				'</td>' +
 				'<td>' + 
-					'<select class="form-control" name="product[]" id="products_id_' + pro_pc_total + '" >' +
+					'<select class="form-control" name="product[]" id="products_id_' + pro_sl_total + '" >' +
             		'</select>' +
-            		'<script type="text/javascript">product_sales_select("products_id_' + pro_pc_total + '",' + pro_pc_total +',0); <\/script>' +
-            		'<input type="hidden" name="product_id[]" class="form-control" id="pro_pc_id_' + pro_pc_total + '" />' + 
-            		'<input type="hidden" name="product_name[]" class="form-control" id="pro_pc_name_' + pro_pc_total + '" />' + 
-            		'<input type="hidden" name="product_code[]" class="form-control" id="pro_pc_code_' + pro_pc_total + '" />' + 
+            		'<script type="text/javascript">product_sales_select("products_id_' + pro_sl_total + '",' + pro_sl_total +',0); <\/script>' +
+            		'<input type="hidden" name="product_id[]" class="form-control" id="pro_sl_id_' + pro_sl_total + '" />' + 
+            		'<input type="hidden" name="product_name[]" class="form-control" id="pro_sl_name_' + pro_sl_total + '" />' + 
+            		'<input type="hidden" name="product_code[]" class="form-control" id="pro_sl_code_' + pro_sl_total + '" />' + 
 				'</td>' +
-				'<td>' + '<input type="text" name="product_expried[]" value="" id="product_expried_' + pro_pc_total + '">' +
-				'<script type="text/javascript">$("#product_expried_' + pro_pc_total + '").datepicker({showOn : "both",dateFormat : "dd/mm/yy",changeMonth : true, changeYear : true,showOtherMonths : true,buttonImage : nv_base_siteurl + "assets/images/calendar.gif",buttonImageOnly : true}); <\/script>' +
+				'<td>' + '<input type="text" name="product_expried[]" value="" id="product_expried_' + pro_sl_total + '">' +
+				'<script type="text/javascript">$("#product_expried_' + pro_sl_total + '").datepicker({showOn : "both",dateFormat : "dd/mm/yy",changeMonth : true, changeYear : true,showOtherMonths : true,buttonImage : nv_base_siteurl + "assets/images/calendar.gif",buttonImageOnly : true}); <\/script>' +
 				'</td>' +
 				'<td>' + 
-				' <input type="hidden" name="product_net_cost[]" value="" id="pro_pc_net_' + pro_pc_total + '">' + 
-				' <input type="hidden" name="product_unit_cost[]" value="" id="pro_pc_cost_' + pro_pc_total + '">' + 
-				' <input type="text" name="product_real_unit_cost[]" value="" id="pro_pc_real_' + pro_pc_total + '">' + 
+				' <input type="hidden" name="product_net_price[]" value="" id="pro_sl_net_' + pro_sl_total + '">' + 
+				' <input type="hidden" name="product_unit_price[]" value="" id="pro_sl_cost_' + pro_sl_total + '">' + 
+				' <input type="text" name="product_real_unit_price[]" value="" id="pro_sl_real_' + pro_sl_total + '">' + 
 				'</td>' +
-				'<td><input type="text" name="product_base_quantity[]" value="1" id="pro_pc_quantity_'+ pro_pc_total +'">' +
-				'<input type="hidden" name="product_unit[]" value="" id="pro_pc_unit_'+ pro_pc_total +'">' +
-				'<script type="text/javascript">$("#pro_pc_quantity_' + pro_pc_total + '").on("change", function () {var quantity = $("#pro_pc_quantity_' + pro_pc_total + '").val(); var price = $("#pro_pc_real_' + pro_pc_total + '").val(); var total = price*quantity; $("#pro_pc_total_' + pro_pc_total + '").val(total);}); <\/script>' +
+				'<td><input type="text" name="product_base_quantity[]" value="1" id="pro_sl_quantity_'+ pro_sl_total +'">' +
+				'<input type="hidden" name="product_unit[]" value="" id="pro_sl_unit_'+ pro_sl_total +'">' +
+				'<script type="text/javascript">$("#pro_sl_quantity_' + pro_sl_total + '").on("change", function () {var quantity = $("#pro_sl_quantity_' + pro_sl_total + '").val(); var price = $("#pro_sl_real_' + pro_sl_total + '").val(); var total = price*quantity; $("#pro_sl_total_' + pro_sl_total + '").val(total);}); <\/script>' +
 				'</td>' +
 				'<td><input type="hidden" name="product_discount[]" value=""></td>' +
 				'<td><input type="hidden" name="product_tax_rate[]" value="">' +
 					'<input type="hidden" name="product_tax[]" value="">' +
 					'<input type="hidden" name="product_cost_tax[]" value="">' +
 					'(%) <br> </td>' +
-				'<td><input type="text" name="product_total[]" value="" id="pro_pc_total_'+ pro_pc_total +'"></td>' +
+				'<td><input type="text" name="product_total[]" value="" id="pro_sl_total_'+ pro_sl_total +'"></td>' +
 				'<td>' + '' +'</td>' +
 			'</tr>';
    $('.products').append(html);
-   $.cookie('products_sales_total', pro_pc_total , { path: '/', expires: 1 });
+   $.cookie('products_sales_total', pro_sl_total , { path: '/', expires: 1 });
   return false; 
 }
 function add_line_combo(){
@@ -763,6 +763,16 @@ function delete_product_line(oForm){
     });
    return false; 
 }
+function delete_product_sales_line(oForm){
+    var rows = $('.products').find('tr').length;
+    var form = $('#contentmod form');
+     var list = [];
+    $(".checkib:checked").each(function() {
+    	$("#pro_sl_" + $(this).val()).remove();
+        //list.push();
+    });
+   return false; 
+}
 function delete_line_combo(oForm){
     var rows = $('.products').find('tr').length;
     var form = $('#contentmod form');
@@ -773,12 +783,12 @@ function delete_line_combo(oForm){
     });
    return false; 
 }
-function product_select_form(pro_sh_id){
+/* function product_select_form(pro_sh_id){
 	$("#products_id_"+pro_sh_id).select2({
 		templateProResult: formatRepo, // omitted for brevity, see the source of this page
         templateProSelection: formatRepoSelection // omitted for brevity, see the source of this page
 	});
-}
+} */
 function product_select2(id,pro_sh_id,id_product_select){
 	var selected = {id: id_product_select, name: id_product_select};
     $("#"+id).select2({
@@ -850,20 +860,25 @@ function product_select2(id,pro_sh_id,id_product_select){
  	
 }
 function formatProRepo (repo) {
+	
 		if (repo.loading) return repo.text;
 		return '<div id="pro_pc_id_option_' + repo.id + '" class="product_list_select" ><div class="col-md-4"> ' + repo.title + '</div><div class="col-md-20">' + repo.name + '</div></div>';
 	}
 function formatRepoProSelection (repo) {
+	var quantity = $("#pro_pc_quantity_" + repo.pro_sh_id).val();console.log(quantity);
+	if(quantity != undefined )
+		quantity = quantity.replace(/,/g, '');
 	$('#pro_pc_cost_'+repo.pro_sh_id).val(repo.cost);
 	$('#pro_pc_net_'+repo.pro_sh_id).val(repo.cost);
 	$('#pro_pc_real_'+repo.pro_sh_id).val(repo.cost);
 	$('#pro_pc_unit_'+repo.pro_sh_id).val(repo.unit_id);
-	$('#pro_pc_total_'+repo.pro_sh_id).val(repo.cost);
+	$('#pro_pc_total_'+repo.pro_sh_id).val(repo.cost*quantity);
 	$('#pro_pc_unit_name_'+repo.pro_sh_id).html('');
 	$('#pro_pc_unit_name_'+repo.pro_sh_id).append(repo.unit_name);
 	$('#pro_pc_unit_'+repo.pro_sh_id).val(repo.unit_id);
 	$('#pro_pc_code_'+repo.pro_sh_id).val(repo.title);
 	$('#pro_pc_id_'+repo.pro_sh_id).val(repo.id);
+	
 	return repo.title + ' - ' + repo.name;
 }
 function product_select(id,pro_sh_id,id_product_select){
@@ -907,8 +922,7 @@ function product_select(id,pro_sh_id,id_product_select){
 		            	var optionsd = data;
 		   				for (var i = 0; i < data.length; i++) {
 		   					if(optionsd[i].id == id_product_select){
-		   						console.log(optionsd[i]);
-		   						callback({"id":optionsd[i].id,"title":optionsd[i].title,"name":optionsd[i].name,"cost":optionsd[i].cost,"unit_name":optionsd[i].unit_name,"unit_id":optionsd[i].unit_id,"pro_sh_id":optionsd[i].id,"id_product_select":optionsd[i].id_product_select});
+		   						callback({"id":optionsd[i].id,"title":optionsd[i].title,"name":optionsd[i].name,"cost":optionsd[i].cost,"unit_name":optionsd[i].unit_name,"unit_id":optionsd[i].unit_id,"pro_sh_id":optionsd[i].pro_sh_id,"id_product_select":optionsd[i].id_product_select});
 		   						$('#pro_pc_name_'+optionsd[i].pro_sh_id).html('');
 								$('#pro_pc_name_'+optionsd[i].pro_sh_id).append(optionsd[i].name);
 								$('#pro_pc_unit_name_'+optionsd[i].pro_sh_id).html('');
@@ -975,8 +989,7 @@ function product_select_transfer(id,pro_sh_id,id_product_select){
 		            	var optionsd = data;
 		   				for (var i = 0; i < data.length; i++) {
 		   					if(optionsd[i].id == id_product_select){
-		   						console.log(optionsd[i]);
-		   						callback({"id":optionsd[i].id,"title":optionsd[i].title,"name":optionsd[i].name,"cost":optionsd[i].cost,"unit_name":optionsd[i].unit_name,"unit_id":optionsd[i].unit_id,"pro_sh_id":optionsd[i].id,"id_product_select":optionsd[i].id_product_select});
+		   						callback({"id":optionsd[i].id,"title":optionsd[i].title,"name":optionsd[i].name,"cost":optionsd[i].cost,"unit_name":optionsd[i].unit_name,"unit_id":optionsd[i].unit_id,"pro_sh_id":optionsd[i].pro_sh_id,"id_product_select":optionsd[i].id_product_select});
 		   						$('#pro_tf_name_'+optionsd[i].pro_sh_id).html('');
 								$('#pro_tf_name_'+optionsd[i].pro_sh_id).append(optionsd[i].name);
 								$('#pro_tf_unit_name_'+optionsd[i].pro_sh_id).html('');
@@ -1007,6 +1020,11 @@ function formatTfsRepo (repo) {
 		return '<div id="pro_tf_id_option_' + repo.id + '" class="product_list_select" ><div class="col-md-4"> ' + repo.title + '</div><div class="col-md-20">' + repo.name + '</div></div>';
 	}
 function formatRepoTfsSelection (repo) {
+	var quantity_curent = $("#pro_tf_quantity_" + repo.pro_sh_id).val();
+	if(quantity_curent != undefined )
+		quantity_curent = quantity_curent.replace(/,/g, '');
+	else
+		quantity_curent = 0;
 	$('#pro_tf_cost_'+repo.pro_sh_id).val(repo.cost);
 	$('#pro_tf_net_'+repo.pro_sh_id).val(repo.cost);
 	$('#pro_tf_real_'+repo.pro_sh_id).val(repo.cost);
@@ -1017,6 +1035,67 @@ function formatRepoTfsSelection (repo) {
 	$('#pro_tf_unit_'+repo.pro_sh_id).val(repo.unit_id);
 	$('#pro_tf_code_'+repo.pro_sh_id).val(repo.title);
 	$('#pro_tf_id_'+repo.pro_sh_id).val(repo.id);
+	if(repo.id>0){
+		var wh_sh_id = $("#warehouse_id").val();
+		$.ajax({
+			type: "GET",
+			url: script_name + '?' + nv_name_variable + '=storehouse&' + nv_fc_variable + '=ajax&mod=products_of_warehouse&pro_sh_id=' + repo.id + '&wh_sh_id=' + wh_sh_id,
+			dataType: 'json',
+			data: function (params) {
+				 return {
+					 pro_sh_id: repo.id,
+					 wh_sh_id:wh_sh_id
+				 };
+			 },
+			success: function (data, params) {
+				var optionsd = data;
+				if(data.quantity == 0 || quantity_curent > data.quantity)
+					alert(data.status_error);
+				
+			}
+		});
+   }
+	return repo.title + ' - ' + repo.name;
+}
+function formatSaleRepo (repo) {
+		if (repo.loading) return repo.text;
+		return '<div id="pro_sl_id_option_' + repo.id + '" class="product_list_select" ><div class="col-md-4"> ' + repo.title + '</div><div class="col-md-20">' + repo.name + '</div></div>';
+	}
+function formatRepoSaleSelection (repo) {
+	var quantity_curent = $("#pro_sl_quantity_" + repo.pro_sh_id).val();
+	if(quantity_curent != undefined )
+		quantity_curent = quantity_curent.replace(/,/g, '');
+	else
+		quantity_curent = 0;
+	$('#pro_sl_cost_'+repo.pro_sh_id).val(repo.price);
+	$('#pro_sl_net_'+repo.pro_sh_id).val(repo.price);
+	$('#pro_sl_real_'+repo.pro_sh_id).val(repo.price);
+	$('#pro_sl_unit_'+repo.pro_sh_id).val(repo.unit_id);
+	$('#pro_sl_unit_name_'+repo.pro_sh_id).html('');
+	$('#pro_sl_unit_name_'+repo.pro_sh_id).append(repo.unit_name);
+	$('#pro_sl_unit_'+repo.pro_sh_id).val(repo.unit_sales_id);
+	$('#pro_sl_code_'+repo.pro_sh_id).val(repo.title);
+	$('#pro_sl_id_'+repo.pro_sh_id).val(repo.id); 
+	if(repo.id>0){
+		var wh_sh_id = $("#warehouse_id").val();
+		$.ajax({
+			type: "GET",
+			url: script_name + '?' + nv_name_variable + '=storehouse&' + nv_fc_variable + '=ajax&mod=products_of_warehouse&pro_sh_id=' + repo.id + '&wh_sh_id=' + wh_sh_id,
+			dataType: 'json',
+			data: function (params) {
+				 return {
+					 pro_sh_id: repo.id,
+					 wh_sh_id:wh_sh_id
+				 };
+			 },
+			success: function (data, params) {
+				var optionsd = data;
+				if(data.quantity == 0 || quantity_curent > data.quantity)
+					alert(data.status_error);
+				
+			}
+		});
+   }
 	return repo.title + ' - ' + repo.name;
 }
 function product_sales_select(id,pro_sh_id,id_product_select){
@@ -1039,6 +1118,7 @@ function product_sales_select(id,pro_sh_id,id_product_select){
               },
             processResults: function (data, params) {
                 return {
+					
                     results: data
                 };
             },
@@ -1059,14 +1139,13 @@ function product_sales_select(id,pro_sh_id,id_product_select){
 		            success: function (data, params) {
 		            	var optionsd = data;
 		   				for (var i = 0; i < data.length; i++) {
-		   					if(optionsd[i].id == id_product_select){
-		   						console.log(optionsd[i]);
-		   						callback({"id":optionsd[i].id,"title":optionsd[i].title,"name":optionsd[i].name,"cost":optionsd[i].cost,"unit_name":optionsd[i].unit_name,"unit_id":optionsd[i].unit_id,"unit_sales_id":optionsd[i].unit_sales_id,"pro_sh_id":optionsd[i].id,"id_product_select":optionsd[i].id_product_select});
-								$('#pro_pc_unit_name_'+optionsd[i].pro_sh_id).html('');
-								$('#pro_pc_unit_name_'+optionsd[i].pro_sh_id).append(optionsd[i].unit_name);
-								$('#pro_pc_unit_'+optionsd[i].pro_sh_id).val(optionsd[i].unit_sales_id);
-								$('#pro_pc_code_'+optionsd[i].pro_sh_id).val(optionsd[i].title);
-								$('#pro_pc_id_'+optionsd[i].pro_sh_id).val(optionsd[i].id);
+		   					if(optionsd[i].id == id_product_select){/* console.log(data); */
+		   						callback({"id":optionsd[i].id,"title":optionsd[i].title,"name":optionsd[i].name,"cost":optionsd[i].cost,"unit_name":optionsd[i].unit_name,"unit_id":optionsd[i].unit_id,"unit_sales_id":optionsd[i].unit_sales_id,"pro_sh_id":optionsd[i].pro_sh_id,"id_product_select":optionsd[i].id_product_select});
+								/* $('#pro_sl_unit_name_'+optionsd[i].pro_sh_id).html('');
+								$('#pro_sl_unit_name_'+optionsd[i].pro_sh_id).append(optionsd[i].unit_name);
+								$('#pro_sl_unit_'+optionsd[i].pro_sh_id).val(optionsd[i].unit_sales_id);
+								$('#pro_sl_code_'+optionsd[i].pro_sh_id).val(optionsd[i].title);
+								$('#pro_sl_id_'+optionsd[i].pro_sh_id).val(optionsd[i].id); */
 		   					}
 		   						
 						}
@@ -1079,9 +1158,81 @@ function product_sales_select(id,pro_sh_id,id_product_select){
 		},
         escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
         minimumInputLength: 0,
-        templateResult: formatProRepo, // omitted for brevity, see the source of this page
-        templateSelection: formatRepoProSelection // omitted for brevity, see the source of this page
+        templateResult: formatSaleRepo, // omitted for brevity, see the source of this page
+        templateSelection: formatRepoSaleSelection // omitted for brevity, see the source of this page
  	});
  	
  	
 }
+function nv_b_chang_pur(id, checkbox_id) {
+    if (confirm(nv_is_change_act_confirm[0])) {
+        var nv_timer = nv_settimeout_disable(checkbox_id, 5000);
+        $.post(script_name + '?' + nv_name_variable + '=' + nv_module_name + '&' + nv_fc_variable + '=ajax&nocache=' + new Date().getTime(), 'purid=' + id + '&mod=wpurstatus' , function(res) {
+            var r_split = res.split("|");
+            if (r_split[0] != 'OK') {
+                alert(nv_is_change_act_confirm[2]);
+                var sl = document.getElementById(r_split[1]);
+                if (sl.checked == true)
+                    sl.checked = false;
+                else
+                    sl.checked = true;
+                clearTimeout(nv_timer);
+                sl.disabled = true;
+            } else {
+                window.location.href = window.location.href;
+            }
+        });
+    } else {
+        var sl = document.getElementById(checkbox_id);
+        if (sl.checked == true)
+            sl.checked = false;
+        else
+            sl.checked = true;
+    }
+    return;
+}
+function nv_b_chang_sale(id, checkbox_id) {
+    if (confirm(nv_is_change_act_confirm[0])) {
+        var nv_timer = nv_settimeout_disable(checkbox_id, 5000);
+        $.post(script_name + '?' + nv_name_variable + '=' + nv_module_name + '&' + nv_fc_variable + '=ajax&nocache=' + new Date().getTime(), 'saleid=' + id + '&mod=wsalestatus' , function(res) {
+            var r_split = res.split("|");
+            if (r_split[0] != 'OK') {
+                alert(nv_is_change_act_confirm[2]);
+                var sl = document.getElementById(r_split[1]);
+                if (sl.checked == true)
+                    sl.checked = false;
+                else
+                    sl.checked = true;
+                clearTimeout(nv_timer);
+                sl.disabled = true;
+            } else {
+                window.location.href = window.location.href;
+            }
+        });
+    } else {
+        var sl = document.getElementById(checkbox_id);
+        if (sl.checked == true)
+            sl.checked = false;
+        else
+            sl.checked = true;
+    }
+    return;
+}
+/* $('#pur_status_7').on('click', function(e) {
+	e.preventDefault();
+	var $this = $(this);
+	var ctn = $this;
+	var btn = $('#pur_' + ctn.data('mod') + '_' + ctn.data('wid'));
+	if (ctn.data('mod') == 'wpurstatus' && $this.data('value') == 0 && !confirm(btn.data('cmess'))) {
+	   return 0;
+	}
+	console.log(btn.data('cmess'));
+	$.post(script_name + '?' + nv_name_variable + '=' + nv_module_name + '&' + nv_fc_variable + '=ajax&nocache=' + new Date().getTime(), 'purid=' + ctn.data('wid') + '&mod=' + ctn.data('mod') + '&new_vid=' + $this.data('value'), function(res) {
+		var r_split = res.split('_');
+		if (r_split[0] != 'OK') {
+			alert(nv_is_change_act_confirm[2]);
+		}
+		return;
+	});
+	console.log(btn.data('cmess'));
+}); */

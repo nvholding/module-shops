@@ -24,6 +24,42 @@ $sales = new NukeViet\StoreHouse\Sales;
 $storehouse = new NukeViet\StoreHouse\StoreHouse;
 $report = new NukeViet\StoreHouse\Reports;
 $purchases = new NukeViet\StoreHouse\Purchases;
+if ($mod == 'wpurstatus') {
+	$purid = $nv_Request->get_int('purid', 'get,post', 0);
+	$sql = 'SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_warehouses WHERE id=' . $purid . ' AND purchases IN (0,1)';
+	$row = $db->query($sql)->fetch();
+	if (empty($row)) {
+		nv_htmlOutput('NO|act_pur_' . $purid);
+	}
+	$act = intval($row['purchases']);
+	
+	if ($act == 0) {
+		$act = 1;
+	} elseif ($act == 1) {
+		$act = 0;
+		
+	}
+	$return = ($db->exec('UPDATE ' . $db_config['prefix'] . '_' . $module_data . '_warehouses SET purchases = ' . $act . ' WHERE id = ' . $purid)) ? 'OK' : 'NO';
+	nv_htmlOutput($return . '|act_pur_' . $purid);
+}
+if ($mod == 'wsalestatus') {
+	$saleid = $nv_Request->get_int('saleid', 'get,post', 0);
+	$sql = 'SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_warehouses WHERE id=' . $saleid . ' AND sales IN (0,1)';
+	$row = $db->query($sql)->fetch();
+	if (empty($row)) {
+		nv_htmlOutput('NO|act_sale_' . $purid);
+	}
+	$act = intval($row['sales']);
+	
+	if ($act == 0) {
+		$act = 1;
+	} elseif ($act == 1) {
+		$act = 0;
+		
+	}
+	$return = ($db->exec('UPDATE ' . $db_config['prefix'] . '_' . $module_data . '_warehouses SET sales = ' . $act . ' WHERE id = ' . $saleid)) ? 'OK' : 'NO';
+	nv_htmlOutput($return . '|act_sale_' . $saleid);
+}
 if ($mod == 'products') {
     $stmt = $db->prepare('SELECT COUNT(*) FROM ' . $db_config['dbsystem'] . '.'  . NV_TABLE_SHOPS . '_rows WHERE id!=' . $id . ' AND alias= :alias');
     $stmt->bindParam(':alias', $alias, PDO::PARAM_STR);
@@ -46,8 +82,7 @@ if ($mod == 'warehouse_list') {
         ->select('id, code, name')
         ->from($db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_warehouses')
         ->where('store_id = :store_id')
-        ->order('id ASC')
-        ->limit(20);
+        ->order('id ASC');
 
     $sth = $db->prepare($db->sql());
     $sth->bindValue(':store_id', $store_id, PDO::PARAM_INT);
@@ -70,8 +105,7 @@ if ($mod == 'products_list') {
         ->select('id, code, name')
         ->from($db_config['dbsystem'] . '.' . NV_TABLE_SHOPS . '_rows')
         ->where('name LIKE :q_title AND type != "material"')
-        ->order('id ASC')
-        ->limit(20);
+        ->order('id ASC');
 
     $sth = $db->prepare($db->sql());
     $sth->bindValue(':q_title', '%' . $q . '%', PDO::PARAM_STR);
@@ -121,8 +155,7 @@ if ($mod == 'products_shop_list') {
         ->select('id, code, name, quantity, purchase_unit')
         ->from($db_config['dbsystem'] . '.' . $module_data . '_rows')
         ->where($where)
-        ->order('id ASC')
-        ->limit(20);
+        ->order('id ASC');
 
     $sth = $db->prepare($db->sql());
 	if($q!='') $sth->bindValue(':q_title', '%' . $q . '%', PDO::PARAM_STR);
@@ -164,8 +197,7 @@ if ($mod == 'products_project_list') {
 	        ->select('projectid, title')
 	        ->from($db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_project')
 	        ->where($where)
-	        ->order('projectid ASC')
-	        ->limit(20);
+	        ->order('projectid ASC');
 	
 	    $sth = $db->prepare($db->sql());
 		if($q!='') $sth->bindValue(':q_title', '%' . $q . '%', PDO::PARAM_STR);
@@ -207,8 +239,7 @@ if ($mod == 'products_material_list') {
         ->select('id, code, name, quantity, purchase_unit')
         ->from($db_config['dbsystem'] . '.' . NV_TABLE_SHOPS . '_rows')
         ->where($where)
-        ->order('id ASC')
-        ->limit(20);
+        ->order('id ASC');
 
     $sth = $db->prepare($db->sql());
 	if($q!='') $sth->bindValue(':q_title', '%' . $q . '%', PDO::PARAM_STR);
@@ -243,6 +274,7 @@ if ($mod == 'products_purchases_list') {
     $id_product_select = $nv_Request->get_int('id_product_select', 'post, get', 0);
 	$no_pro = $nv_Request->get_array('no_pro', 'post, get', array());
 	//print_r($no_pro);die;
+	$where = '1 ';
 	if($no_pro != array()){
 		$list_no_pro = implode(',', $no_pro);
 		$where .= ' AND p.id NOT IN (' . $list_no_pro . ')';
@@ -250,19 +282,16 @@ if ($mod == 'products_purchases_list') {
 	if($id_product_select > 0){
 		//$where = ' AND p.id =' . $id_product_select;
 	}
-	if($q!='') $where .= 'AND p.name like ":q_title"';
+	if($q!='') $where .= ' AND (p.' . NV_LANG_DATA .'_title like ":q_title" OR p.product_code like ":q_code") ';
     $db->sqlreset()
-        ->select('p.id, p.product_code, p.' . NV_LANG_DATA .'_title title, p.product_number quantity, p.purchase_unit, p.cost, p.price_config, p.product_price')
+        ->select('p.id, p.product_code, p.' . NV_LANG_DATA .'_title name, p.product_number quantity, p.purchase_unit, p.cost, p.price_config, p.product_price')
         ->from($db_config['dbsystem'] . '.' . NV_TABLE_SHOPS . '_rows p');
-		/* ->join('LEFT JOIN ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_product_of_category poc ON p.id=poc.product_id');
-		if($_SESSION[$module_data . '_store_id']>0) 
-	    	$db->where('poc.category_id IN(' . implode(",", $array_category_of_store) . ') ' . $where); */
+	    $db->where($where); 
 		$db->group('p.id')
-        ->order('p.id ASC')
-        ->limit(20);
+        ->order('p.id ASC');
     $sth = $db->prepare($db->sql());
 	if($q!='') $sth->bindValue(':q_title', '%' . $q . '%', PDO::PARAM_STR);
-	//if($q!='') $sth->bindValue(':q_code', '%' . $q . '%', PDO::PARAM_STR);
+	if($q!='') $sth->bindValue(':q_code', '%' . $q . '%', PDO::PARAM_STR);
     $sth->execute();
 	
     $array_data = array();
@@ -274,7 +303,10 @@ if ($mod == 'products_purchases_list') {
 		$sth1 = $db->prepare($db->sql());
 	    $sth1->execute();
 		list ($unit_name) = $sth1->fetch(3);
-		$price = $product_price;
+		if($global_config['idsite'] == 0 && $cost > 0)
+			$price = $cost;
+		else
+			$price = $product_price;
 		$price_cost = unserialize($price_config);
          if (!empty($price_cost)) {
             foreach ($price_cost as $_p) {
@@ -315,14 +347,13 @@ if ($mod == 'products_transfer_list') {
 	}
 	if($q!='') $where .= 'AND p.name like ":q_title"';
     $db->sqlreset()
-        ->select('p.id, p.product_code, p.' . NV_LANG_DATA .'_title title, p.product_number quantity, p.purchase_unit, p.cost, p.price_config, p.product_price')
+        ->select('p.id, p.product_code code, p.' . NV_LANG_DATA .'_title name, p.product_number quantity, p.purchase_unit, p.cost, p.price_config, p.product_price')
         ->from($db_config['dbsystem'] . '.' . NV_TABLE_SHOPS . '_rows p');
 		/* ->join('LEFT JOIN ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_product_of_category poc ON p.id=poc.product_id');
 		if($_SESSION[$module_data . '_store_id']>0) 
 	    	$db->where('poc.category_id IN(' . implode(",", $array_category_of_store) . ') ' . $where); */
 		$db->group('p.id')
-        ->order('p.id ASC')
-        ->limit(20);
+        ->order('p.id ASC');
     $sth = $db->prepare($db->sql());
 	if($q!='') $sth->bindValue(':q_title', '%' . $q . '%', PDO::PARAM_STR);
 	//if($q!='') $sth->bindValue(':q_code', '%' . $q . '%', PDO::PARAM_STR);
@@ -337,7 +368,10 @@ if ($mod == 'products_transfer_list') {
 		$sth1 = $db->prepare($db->sql());
 	    $sth1->execute();
 		list ($unit_name) = $sth1->fetch(3);
-		$price = $product_price;
+		if($global_config['idsite'] == 0 && $cost > 0)
+			$price = $cost;
+		else
+			$price = $product_price;
 		$price_cost = unserialize($price_config);
          if (!empty($price_cost)) {
             foreach ($price_cost as $_p) {
@@ -363,12 +397,32 @@ if ($mod == 'products_transfer_list') {
 
     nv_jsonOutput($array_data);
 }
+if ($mod == 'products_of_warehouse') {
+    $pro_sh_id = $nv_Request->get_int('pro_sh_id', 'post, get', 0);
+    $wh_sh_id = $nv_Request->get_int('wh_sh_id', 'post, get', 0);
+	$db->sqlreset()
+        ->select('quantity')
+		->from($db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_warehouses_products')
+		->where('product_id = '. $pro_sh_id . ' AND warehouse_id = ' . $wh_sh_id);
+	$quantity = $db->query($db->sql())
+		->fetch(5)
+		->quantity;
+	if($quantity == 0) $lang_status = $lang_module['no_quantity']; else $lang_status = "";
+	$array_data = array(
+            'id' => $pro_sh_id,
+            'wh' => $wh_sh_id,
+            'quantity' => storehouse_number_format($quantity,0,'',''),
+            'status_error' => $lang_status
+        );
+    nv_jsonOutput($array_data);
+}
 if ($mod == 'products_sales_list') {
     $q = $nv_Request->get_title('q', 'post, get', '');
     $pro_sh_id = $nv_Request->get_int('pro_sh_id', 'post, get', 0);
     $id_product_select = $nv_Request->get_int('id_product_select', 'post, get', 0);
 	$no_pro = $nv_Request->get_array('no_pro', 'post, get', array());
 	//print_r($no_pro);die;
+	$where = '';
 	if($no_pro != array()){
 		$list_no_pro = implode(',', $no_pro);
 		$where .= ' AND p.id NOT IN (' . $list_no_pro . ')';
@@ -376,7 +430,7 @@ if ($mod == 'products_sales_list') {
 	if($id_product_select > 0){
 		//$where = ' AND p.id =' . $id_product_select;
 	}
-	if($q!='') $where .= 'AND p.name like ":q_title"';
+	if($q!='') $where .= ' AND p.product_code like "%' . $q . '%" ';
     $db->sqlreset()
         ->select('p.id, p.product_code code, p.' . NV_LANG_DATA . '_title name, p.product_number quantity, p.sale_unit, p.price_config, p.product_price')
         ->from($db_config['dbsystem'] . '.' . NV_TABLE_SHOPS . '_rows p');
@@ -384,15 +438,11 @@ if ($mod == 'products_sales_list') {
 		if($_SESSION[$module_data . '_store_id']>0 && !empty($array_category_of_store))
 			$where .= ' AND poc.category_id IN(' . implode(",", $array_category_of_store) . ')'; */
 	    $db->where('p.type !=0 '. $where);
-		$db->group('p.id')
-        ->order('p.id ASC')
-        ->limit(20);
-	//print_r($db->sql());die;
+		/* $db->group('p.id') */
+        $db->order('p.id ASC');
+	/* print_r($db->sql());die;  */
     $sth = $db->prepare($db->sql());
-	if($q!='') $sth->bindValue(':q_title', '%' . $q . '%', PDO::PARAM_STR);
-	if($q!='') $sth->bindValue(':q_code', '%' . $q . '%', PDO::PARAM_STR);
     $sth->execute();
-
     $array_data = array();
     while (list ($id, $code, $name, $quantity, $sale_unit, $price_config, $price) = $sth->fetch(3)) {
     	$db->sqlreset()
@@ -408,7 +458,7 @@ if ($mod == 'products_sales_list') {
             'name' => $name,
             'price' => storehouse_number_format($price,0,'',''),
             'unit_name' => $unit_name,
-            'unit_id' => $sale_unit,
+            'unit_sales_id' => $sale_unit,
             'pro_sh_id' => $pro_sh_id,
             'id_product_select' => $id_product_select
         );

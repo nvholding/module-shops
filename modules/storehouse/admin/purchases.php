@@ -67,9 +67,11 @@ require_once NV_ROOTDIR . '/modules/' . $module_file . '/global.catalogy.php';
 	    $row['product_unit'] = $nv_Request->get_array('product_unit', 'post', 0);
 	    $row['product_quantity_received'] = $nv_Request->get_array('product_quantity_received', 'post', 0);
 	    $row['product_base_quantity'] = $nv_Request->get_array('product_base_quantity', 'post', 0);
+	    $row['quantity_balance'] = $nv_Request->get_array('quantity_balance', 'post', 0);
 	    $row['product_real_unit_cost'] = $nv_Request->get_array('product_real_unit_cost', 'post', 0);
 	    $row['product_net_cost'] = $nv_Request->get_array('product_net_cost', 'post', 0);
 	    $row['product_unit_cost'] = $nv_Request->get_array('product_unit_cost', 'post', 0);
+	    $row['ordered_quantity'] = $nv_Request->get_array('ordered_quantity', 'post', 0);
 	    $row['part_no'] = $nv_Request->get_array('part_no', 'post', 0);
 	    $row['idsite'] = $global_config['idsite'];
 	    $row['parentid'] = $site_parent;
@@ -142,6 +144,7 @@ require_once NV_ROOTDIR . '/modules/' . $module_file . '/global.catalogy.php';
 	    $row['product_discount'] = '';
 	    $row['order_discount_id'] = '';
 	    $row['total_discount'] = '';
+	    $row['ordered_quantity'] = 0;
 	    $row['product_tax'] = '';
 	    $row['order_tax_id'] = 0;
 	    $row['order_tax'] = '';
@@ -195,13 +198,15 @@ require_once NV_ROOTDIR . '/modules/' . $module_file . '/global.catalogy.php';
 		$list_product = $storehouse_product->products_model->getAllProducts();
 		
 		$items = $purchaes->purchases_model->getAllPurchaseItems($row['id']);
-		//print_r($items);
 		$i = 0;
 		if($items != array()){
 			
 			foreach($items as $item)
 			{
-				//print_r($item); 
+				$item->ordered_quantity = $item->quantity;
+				$received = $item->quantity_received ? $item->quantity_received : $item->quantity;
+				$item->quantity_balance = $item->quantity_balance + ($item->quantity-$received);
+				/* print_r($item); die; */
 				$i++;
 				if($item->tax_method ==1) {
 					if($item->tax_rate_id == 2){
@@ -229,6 +234,8 @@ require_once NV_ROOTDIR . '/modules/' . $module_file . '/global.catalogy.php';
 					        'quantity' => storehouse_number_format($item->quantity,0),
 					        'purchase_unit' => $item->product_unit_id,
 					        'quantity_received' => storehouse_number_format($item->quantity_received,0),
+					        'ordered_quantity' => storehouse_number_format($item->ordered_quantity,0),
+					        'quantity_balance' => storehouse_number_format($item->quantity_balance,0),
 					        'discount' => 0,
 					        'tax_id' => $item->tax_rate,
 					        'tax' => $tax_per*100,
@@ -293,6 +300,11 @@ require_once NV_ROOTDIR . '/modules/' . $module_file . '/global.catalogy.php';
 		
 		
 		foreach ($list_warehouse_of_store as $w_id => $warehouse) {
+			if($warehouse->id == $row['warehouse_id']){
+				$array_warehouses_storehouse[$warehouse->id]['selected'] = 'selected="selected"';
+			}else{
+				$array_warehouses_storehouse[$warehouse->id]['selected'] = '';
+			}
 			$xtpl->assign('WAREHOUSE', $array_warehouses_storehouse[$warehouse->id]);
 			$xtpl->parse('main.store.select_warehouse_id');
 		}

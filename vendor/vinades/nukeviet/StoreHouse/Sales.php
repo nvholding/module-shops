@@ -353,11 +353,11 @@ class Sales extends MY_Controller
 
     /* ------------------------------------------------------------------ */
 
-    public function shopadd($data_order = array(), $product_storehouse = array())
+    public function shopadd($data_order = array(), $product_storehouse = array(), $quote_id = null)
     {
 		global $nv_Request;
         $sale_id =  NULL;
-		
+		$quote_id = $nv_Request->get_int('quote_id', 'post', null );
         if ($this->form_validation->run() == true) {
         	
         	$reference = ($data_order['reference_no'] != '') ? $data_order['reference_no'] : $this->site->getReference('orso');
@@ -419,7 +419,7 @@ class Sales extends MY_Controller
 		    $manual_payment= $data_order['manual_payment'];
 		    $payment_method= $data_order['payment_method'];
 			
-			foreach ($product_storehouse as $pro_id => $info){
+			foreach ($product_storehouse as $pro_id => $info){/* print_r($info); */
 				$array = explode('_', $pro_id);
 				//print_r($info);die;
 				if($info['pro_storehouse_list'] !=''){
@@ -505,6 +505,7 @@ class Sales extends MY_Controller
 				}
 				
 			}//die;
+			/* print_r($product);die; */
 			$order_discount = $this->site->calculateDiscount(intval($data_order['order_discount']), ($total + $product_tax));
             $total_discount = storehouse_number_format(($order_discount + $product_discount),0,'','');
             $order_tax = $this->site->calculateOrderTax($data_order['order_tax'], ($total + $product_tax - $order_discount));
@@ -604,6 +605,9 @@ class Sales extends MY_Controller
 			$payment = array();
 			//print_r($data);die;
 			if ($this -> form_validation -> run() == true && $this -> sales_model -> addSales($data, $products, $payment)) {
+				 if ($quote_id) {
+					$this->db->query('UPDATE ' . $this -> db_prefix . '_' . $this -> mod_data . '_quotes SET status = 4 WHERE id = ' . $quote_id);
+				}
 				return true;
 			} 
 			  
@@ -615,7 +619,7 @@ class Sales extends MY_Controller
 
     public function edit($id = null)
     {
-
+		global $global_config;
         if ($this->input->get_int('id',  'post', 0)) {
             $id = $this->input->get_int('id', 'post', 0);
         }
@@ -635,8 +639,9 @@ class Sales extends MY_Controller
         //$this->form_validation->set_rules('payment_status', lang("payment_status"), 'required');
 
         if ($this->form_validation->run() == true) {
-			$reference = $this->input->get_title['reference_no'] ? $this->input->get_title['reference_no'] : $this -> site -> getReference('orso');
-			
+			$bill = $this -> input -> get_title('reference_no','post' , '');
+			$reference = ( $bill != '') ? $bill : $this -> site -> getReference('orso');
+			/* print_r($reference);die; */
             if ($this->Owner || $this->Admin) {
                 $date = $this->input->get_title['date'];
             } else {
@@ -649,7 +654,7 @@ class Sales extends MY_Controller
 		    $biller_id = $this->admin->userid;
 		    $biller = $this->admin->username;
             $total_items = $this->input->get_int('total_items');
-            $sale_status = $this->input->get_int('sale_status');
+            $sale_status = $this->input->get_int('status');
             $payment_status = $this->input->get_int('payment_status');
             $payment_term = $this->input->get_title('payment_term');
             $due_date = $payment_term ? date('Y-m-d', strtotime('+' . $payment_term . ' days', strtotime($date))) : null;
@@ -685,10 +690,13 @@ class Sales extends MY_Controller
 			
             for ($r = 0; $r < $i; $r++) {
                 $item_id = $products_id[$r];
-				//print($units_price[$r]);die;
+				/* //print($units_price[$r]);die;
                 $item_type = $products_type[$r];
-                $item_code = $products_code[$r];
-                $item_name = $products_name[$r];
+                 */
+				$product = $this->site->getProductByID($item_id);
+				$item_type = $product->type;
+				$item_code = $products_code[$r];
+				$item_name = $product->name;
                 $item_option = isset($products_option[$r]) && $products_option[$r] != 'false' && $products_option[$r] != 'null' ? $products_option[$r] : null;
                 $real_unit_price = storehouse_number_format(intval(str_replace( ',', '', $reals_unit_price[$r])),0,'','');
                 $unit_price = storehouse_number_format(intval(str_replace( ',', '', $units_price[$r])),0,'','');
@@ -713,7 +721,7 @@ class Sales extends MY_Controller
                     $pr_item_tax = $item_tax = 0;
                     $tax = "";
 
-                    if (isset($item_tax_rate) && $item_tax_rate != 0) {
+                    /* if (isset($item_tax_rate) && $item_tax_rate != 0) {
 
                         $tax_details = $this->site->getTaxRateByID($item_tax_rate);
                         $ctax = $this->site->calculateTax($product_details, $tax_details, $unit_price);
@@ -728,7 +736,7 @@ class Sales extends MY_Controller
                             $total_sgst += $gst_data['sgst'];
                             $total_igst += $gst_data['igst'];
                         }
-                    }
+                    } */
 
                     $product_tax += $pr_item_tax;
                     $subtotal = (($item_net_price * $item_unit_quantity) + $pr_item_tax);
@@ -1208,23 +1216,19 @@ class Sales extends MY_Controller
 
     public function delete($id = null)
     {
-        $this->sma->checkPermissions(null, true);
 
-        if ($this->input->get('id')) {
-            $id = $this->input->get('id');
-        }
 
         $inv = $this->sales_model->getInvoiceByID($id);
         if ($inv->sale_status == 'returned') {
-            $this->sma->send_json(array('error' => 1, 'msg' => lang("sale_x_action")));
+           /*  $this->sma->send_json(array('error' => 1, 'msg' => lang("sale_x_action"))); */
         }
 
         if ($this->sales_model->deleteSale($id)) {
-            if ($this->input->is_ajax_request()) {
+           /*  if ($this->input->is_ajax_request()) {
                 $this->sma->send_json(array('error' => 0, 'msg' => lang("sale_deleted")));
             }
             $this->session->set_flashdata('message', lang('sale_deleted'));
-            admin_redirect('welcome');
+            admin_redirect('welcome'); */
         }
     }
 

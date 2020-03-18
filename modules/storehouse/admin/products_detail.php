@@ -82,14 +82,14 @@ if (!$nv_Request -> isset_request('id', 'post,get')) {
 }
 $product = new NukeViet\StoreHouse\Product;
 $report = new NukeViet\StoreHouse\Reports;
-$purchases_list = $report -> getPurchasesReport();
+$purchases_list = $report -> getPurchasesReport($global_config['idsite'],$global_config['parentid']);
 
-$sales_list = $report -> getSalesReport();
-$transfers_list = $report -> getTransfersReport();
+$sales_list = $report -> getSalesReport($global_config['idsite'],$global_config['parentid']);
+$transfers_list = $report -> getTransfersReport($global_config['idsite'],$global_config['parentid']);
 $purchases_chart_list = $product -> products_model -> getPurchasedQty($row['id']);
 $sales_chart_list = $product -> products_model -> getSoldQty($row['id']);
-$warehouses = $product -> site -> getAllWarehouses();
-$warehouses_products = $product -> products_model -> getAllWarehousesWithPQ($row['id']);
+$warehouses = $product -> site -> getAllWarehouses($global_config['idsite'],$global_config['parentid']);
+$warehouses_products = $product -> products_model -> getAllWarehousesWithPQ($row['id'],$global_config['idsite'],$global_config['parentid']);
 $xtpl = new XTemplate('products_detail.tpl', NV_ROOTDIR . '/themes/' . $global_config['module_theme'] . '/modules/' . $module_file);
 $xtpl -> assign('LANG', $lang_module);
 $xtpl -> assign('NV_LANG_VARIABLE', NV_LANG_VARIABLE);

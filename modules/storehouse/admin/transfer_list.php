@@ -10,12 +10,12 @@
 
 if (!defined('NV_IS_FILE_ADMIN'))
     die('Stop!!!');
-
+$transfer = new NukeViet\StoreHouse\Transfer;
 if ($nv_Request->isset_request('delete_id', 'get') and $nv_Request->isset_request('delete_checkss', 'get')) {
     $id = $nv_Request->get_int('delete_id', 'get');
     $delete_checkss = $nv_Request->get_string('delete_checkss', 'get');
     if ($id > 0 and $delete_checkss == md5($id . NV_CACHE_PREFIX . $client_info['session_id'])) {
-        $db->query('DELETE FROM ' . $db_config['prefix'] . '_' . $module_data . '_transfers  WHERE id = ' . $db->quote($id));
+        $transfer->delete($id);
         $nv_Cache->delMod($module_name);
         nv_insert_logs(NV_LANG_DATA, $module_name, 'Delete Transfer', 'ID: ' . $id, $admin_info['userid']);
         nv_redirect_location(NV_BASE_ADMINURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name . '&' . NV_OP_VARIABLE . '=' . $op);

@@ -35,6 +35,7 @@
                     <th>{LANG.phone}</th>
                     <th>{LANG.email}</th>
                     <th>{LANG.price_group_id}</th>
+                    <th>{LANG.status}</th>
                     <th class="w150">&nbsp;</th>
                 </tr>
             </thead>
@@ -55,7 +56,12 @@
                     <td> {VIEW.map} </td>
                     <td> {VIEW.phone} </td>
                     <td> {VIEW.email} </td>
+					
                     <td> {VIEW.price_group_id} </td>
+					<td> 
+						<input name="act_pur_{VIEW.id}" id="act_pur_{VIEW.id}" type="checkbox" value="1" onclick="nv_b_chang_pur({VIEW.id},'act_pur_{VIEW.id}');" {VIEW.purcheck}><span class="text">{LANG.purchases_show}</span><br>
+						<input name="act_sale_{VIEW.id}" id="act_sale_{VIEW.id}" type="checkbox" value="1" onclick="nv_b_chang_sale({VIEW.id},'act_sale_{VIEW.id}');" {VIEW.salecheck}><span class="text">{LANG.sales_show}</span>
+					</td>
                     <td class="text-center"><i class="fa fa-edit fa-lg">&nbsp;</i> <a href="{VIEW.link_edit}#edit">{LANG.edit}</a> - <em class="fa fa-trash-o fa-lg">&nbsp;</em> <a href="{VIEW.link_delete}" onclick="return confirm(nv_is_del_confirm[0]);">{LANG.delete}</a></td>
                 </tr>
                 <!-- END: loop -->

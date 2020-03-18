@@ -61,7 +61,7 @@ $show_view = false;
 
 if (!$nv_Request->isset_request('id', 'post,get')) {
     $show_view = true;
-    $per_page = 20;
+    $per_page = 100;
     $page = $nv_Request->get_int('page', 'post,get', 1);
     $db->sqlreset()
         ->select('COUNT(*)')
@@ -147,7 +147,7 @@ if ($show_view) {
 		$view['quantity'] = storehouse_number_format( $view['quantity'] ,0);
 		$view['quantity_return'] = storehouse_number_format( $view['quantity_return'] ,0);
 		$view['quantity_export'] = storehouse_number_format( $view['quantity_export'] ,0);
-		$view['cost'] = storehouse_number_format( $view['cost'] ,0);
+		$view['cost'] = ($global_config['idsite'] ==0) ? storehouse_number_format( $view['cost'] ,0) : 0;
 		$view['price'] = storehouse_number_format( $view['product_price'] ,0);
 		$view['alert_quantity'] = storehouse_number_format( $view['alert_quantity'] ,0);/* 
 		if($view['warehouse'] != 0)

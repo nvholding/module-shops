@@ -23,6 +23,7 @@ use PDOException;class Reports extends MY_Controller{
     }
 	public function Products($per_page)
     {
+		global $global_config;
     	$page = $this->input->get_int('page', 'post,get', 1);
         //$this->sma->checkPermissions();
         //$this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -49,11 +50,12 @@ use PDOException;class Reports extends MY_Controller{
     }
     public function getProductsReport($per_page = 1, $page = 1)
     { 
-    	$rpproduct=$this->db->sqlreset()->select ('products.id,products.code, products.name,COALESCE( PCosts.purchasedQty, 0 ) as PurchasedQty, COALESCE( PSales.soldQty, 0 ) as SoldQty,COALESCE( PCosts.balacneQty, 0 ) as BalacneQty, COALESCE( PCosts.totalPurchase, 0 ) as TotalPurchase, COALESCE( PCosts.balacneValue, 0 ) as TotalBalance, COALESCE( PSales.totalSale, 0 ) as TotalSales,  (COALESCE( PSales.totalSale, 0 ) - COALESCE( PCosts.totalPurchase, 0 )) as Profit')
+		global $global_config;
+    	$rpproduct=$this->db->sqlreset()->select ('products.id,products.product_code code, products.' . NV_LANG_DATA . '_title name,COALESCE( PCosts.purchasedQty, 0 ) as PurchasedQty, COALESCE( PSales.soldQty, 0 ) as SoldQty,COALESCE( PCosts.balacneQty, 0 ) as BalacneQty, COALESCE( PCosts.totalPurchase, 0 ) as TotalPurchase, COALESCE( PCosts.balacneValue, 0 ) as TotalBalance, COALESCE( PSales.totalSale, 0 ) as TotalSales,  (COALESCE( PSales.totalSale, 0 ) - COALESCE( PCosts.totalPurchase, 0 )) as Profit')
     	->from($this->db_prefix . '_san_pham_rows products')
-    	->join('left Join ( SELECT si.product_id, SUM( si.quantity ) soldQty, SUM( si.subtotal ) totalSale FROM ' . $this->db_prefix . '_' . $this->mod_data . '_sales s JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_sale_items si on s.id = si.sale_id GROUP BY si.product_id) PSales ON products.id = PSales.product_id 
-				LEFT JOIN (SELECT product_id, SUM(CASE WHEN pi.purchase_id IS NOT NULL THEN quantity ELSE 0 END) as purchasedQty, SUM(quantity_balance) as balacneQty, SUM( unit_cost * quantity_balance ) balacneValue, SUM( (CASE WHEN pi.purchase_id IS NOT NULL THEN (pi.subtotal) ELSE 0 END) ) totalPurchase FROM ' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items pi LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_purchases p on p.id = pi.purchase_id WHERE p.status != 2 AND p.status != 3 GROUP BY pi.product_id ) PCosts ON products.id = PCosts.product_id') 
- 		->group('products.code, PSales.soldQty, PSales.totalSale, PCosts.purchasedQty, PCosts.totalPurchase, PCosts.balacneQty, PCosts.balacneValue')
+    	->join('left Join ( SELECT si.product_id, SUM( si.quantity ) soldQty, SUM( si.subtotal ) totalSale FROM ' . $this->db_prefix . '_' . $this->mod_data . '_sales s JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_sale_items si on s.id = si.sale_id AND saidsite = ' . $global_config['idsite'] . ' GROUP BY si.product_id) PSales ON products.id = PSales.product_id 
+				LEFT JOIN (SELECT product_id, SUM(CASE WHEN pi.purchase_id IS NOT NULL THEN quantity ELSE 0 END) as purchasedQty, SUM(quantity_balance) as balacneQty, SUM( unit_cost * quantity_balance ) balacneValue, SUM( (CASE WHEN pi.purchase_id IS NOT NULL THEN (pi.subtotal) ELSE 0 END) ) totalPurchase FROM ' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items pi LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_purchases p on p.id = pi.purchase_id WHERE p.status != 2 AND p.status != 3 AND puidsite = ' . $global_config['idsite'] . ' GROUP BY pi.product_id ) PCosts ON products.id = PCosts.product_id') 
+ 		->group('products.product_code, PSales.soldQty, PSales.totalSale, PCosts.purchasedQty, PCosts.totalPurchase, PCosts.balacneQty, PCosts.balacneValue')
 		->limit($per_page)
         ->offset(($page - 1) * $per_page);
 		
@@ -124,9 +126,9 @@ use PDOException;class Reports extends MY_Controller{
         }
 		return FALSE;
     }
-	function getSalesReport($start=0,$end=0)
+	function getSalesReport($idsite, $parentid, $start=0,$end=0)
     {
-    	$where = '1';
+    	$where = '1 AND sales.saidsite=' . $idsite .' and sales.saparentid = ' . $parentid;
     	$product = $this->input->get_int('id','get' , NULL);
 		$list_pro=$product;
 		$this->db->sqlreset()->select ('product_id')
@@ -161,13 +163,13 @@ use PDOException;class Reports extends MY_Controller{
         }
 		return FALSE;
     }
-	function getTransfersReport($pdf = NULL, $xls = NULL)
+	function getTransfersReport($idsite, $parentid, $pdf = NULL, $xls = NULL)
     {
     	$product = $this->input->get_int('id','get' , NULL);
 		if ($product) {
             $where = ' purchase_items.product_id = ' . $product . ' OR transfer_items.product_id = ' . $product;
         }else{
-        	$where="";
+        	$where="1";
         }
     	$rpproduct=$this->db->sqlreset()->select ('DATE_FORMAT(FROM_UNIXTIME(transfers.date),"%Y-%m-%d %T") as date, transfer_no, (CASE WHEN transfers.status = 4 THEN GROUP_CONCAT(CONCAT(purchase_items.product_name, "__", purchase_items. quantity) SEPARATOR "___") ELSE GROUP_CONCAT(CONCAT(transfer_items.product_name, "__", transfer_items.quantity) SEPARATOR "___") END) as iname, from_warehouse_id as fw_id, from_warehouse_code as fcode, to_warehouse_id as tw_id,to_warehouse_code as tcode, grand_total, transfers.status, transfers.id as id')
 		->from($this->db_prefix . '_' . $this->mod_data . '_transfers as transfers')
@@ -175,7 +177,7 @@ use PDOException;class Reports extends MY_Controller{
 				LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items as purchase_items ON purchase_items.transfer_id=transfers.id
 			')
 			->group('transfers.id')
-		->where();
+		->where($where . ' AND purchase_items.puiidsite=' . $idsite .' and purchase_items.puiparentid = ' . $parentid);
 		$q = $this->db->query($this->db->sql());
 		if ($q->rowCount() > 0) {
             return $q->fetchAll();

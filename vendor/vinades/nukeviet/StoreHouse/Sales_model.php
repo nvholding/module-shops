@@ -126,13 +126,13 @@ class Sales_model extends Model
 	public function addSales($data = array(), $items = array(), $payment = array(), $si_return = array())
     {
     	if (empty($si_return)) {
-            $cost = $this->site->costing($items);
+            $cost = $this->site->costing($items);/* print_r($cost);die; */
             // $this->sma->print_arrays($cost);
         }
 		if ($this->site->getReference('orso') == $data['reference_no']) {
             $this->site->updateReference('orso');
         }
-		//print_r($data);die;
+		/*  print_r($data);die; */
         $stmt = $this -> db -> prepare('INSERT INTO ' . $this -> db_prefix . '_' . $this -> mod_data . '_sales (date, reference_no, customer_id, customer, projectid, biller_id, biller, warehouse_id, note, staff_note, total, product_discount, order_discount_id, total_discount, order_discount, product_tax, order_tax_id, order_tax, total_tax, shipping, grand_total, sale_status, payment_status, payment_term, due_date, created_by, updated_by, updated_at, total_items, paid, return_id, attachment, return_sale_ref, sale_id, rounding, suspend_note, api, shop, address_id, reserve_id, hash, manual_payment, cgst, sgst, igst, payment_method, module, saidsite, saparentid) VALUES (:date, :reference_no, :customer_id, :customer, :projectid, :biller_id, :biller, :warehouse_id, :note, :staff_note, :total, :product_discount, :order_discount_id, :total_discount, :order_discount, :product_tax, :order_tax_id, :order_tax, :total_tax, :shipping, :grand_total, :sale_status, :payment_status, :payment_term, :due_date, :created_by, :updated_by, :updated_at, :total_items, :paid, :return_id, :attachment, :return_sale_ref, :sale_id, :rounding, :suspend_note, :api, :shop, :address_id, :reserve_id, :hash, :manual_payment, :cgst, :sgst, :igst, :payment_method, :module, :idsite, :parentid)');
         $stmt->bindParam(':date', $data['date'], PDO::PARAM_STR);
             $stmt->bindParam(':reference_no', $data['reference_no'], PDO::PARAM_STR);
@@ -256,7 +256,7 @@ class Sales_model extends Model
 							$stmt->bindParam(':sale_id', $row['sale_id'], PDO::PARAM_INT);
 							$stmt->bindParam(':purchase_item_id', $row['purchase_item_id'], PDO::PARAM_INT);
 							$stmt->bindParam(':quantity', $row['quantity'], PDO::PARAM_STR);
-							$stmt->bindParam(':sale_net_unit_price', $row['purchase_net_unit_price'], PDO::PARAM_STR);
+							$stmt->bindParam(':sale_net_unit_price', $row['sale_net_unit_price'], PDO::PARAM_STR);
 							$stmt->bindParam(':sale_unit_price', $row['sale_unit_price'], PDO::PARAM_STR);
 							$stmt->bindParam(':quantity_balance', $row['quantity_balance'], PDO::PARAM_STR);
 							$stmt->bindParam(':inventory', $row['inventory'], PDO::PARAM_INT);
@@ -267,8 +267,8 @@ class Sales_model extends Model
 					}
 					
 				}
-				
-				if ($data['sale_status'] == 4) {
+				/*  print_r($data); */
+				if ($data['sale_status'] == 4) {/* print_r($cost); */
 					$this->site->syncPurchaseItems($cost);
 				}
 				if (!empty($si_return)) {
@@ -299,16 +299,26 @@ class Sales_model extends Model
 					
 				}
 				
-				$this->site->syncQuantity($sale_id);
+				$this->site->syncQuantity($sale_id);/* print_r($sale_id); */
 	            //$this->sma->update_award_points($data['grand_total'], $data['customer_id'], $data['created_by']);
 	            return $sale_id;
 			} 
-			
+			/* print_r($data); */
         return FALSE;
     }
 	public function updateSale($id, $data, $items = array()) {
-		$opurchase = $this -> getSaleByID($id);
-		$oitems = $this -> site-> getAllPurchaseItems($id);
+		global $global_config;
+		/* $oitems=$this->site->getAllSaleItems($id);
+		foreach($oitems as $oitem){
+			$pro_wh = $this->site->getWarehouseProduct($data['warehouse_id'],$oitem->product_id);
+			$quantity_balance = $pro_wh->quantity+$oitem->quantity;
+			$this->db->query('UPDATE ' . $this->db_prefix . '_' . $this->mod_data . '_costing SET quantity_balance =  ' . $quantity_balance .' WHERE product_id = ' . $oitem->product_id );
+		} */
+		$this->resetSaleActions($id, FALSE, TRUE);
+		if ($data['sale_status'] == 4) {
+			$this->Settings->overselling = true;
+            $cost = $this->site->costing($items, true);
+        }
 		$stmt = $this -> db -> prepare('UPDATE ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sales SET reference_no = :reference_no, date = :date, customer_id = :customer_id, customer = :customer, projectid = :projectid, warehouse_id = :warehouse_id, note = :note, total = :total, product_discount = :product_discount, order_discount_id = :order_discount_id, total_discount = :total_discount, product_tax = :product_tax, order_tax_id = :order_tax_id, order_tax = :order_tax, total_tax = :total_tax, shipping = :shipping, grand_total = :grand_total, sale_status = :sale_status, payment_status = :payment_status, attachment = :attachment, payment_term = :payment_term WHERE id=' . $id);
         $stmt -> bindParam(':reference_no', $data['reference_no'], PDO::PARAM_STR);
         $stmt -> bindParam(':date', $data['date'], PDO::PARAM_INT);
@@ -334,14 +344,14 @@ class Sales_model extends Model
         $stmt -> bindParam(':payment_term', $data['payment_term'], PDO::PARAM_INT);
         $exc = $stmt -> execute();
 		
-		if ($exc && $this -> db -> query('DELETE FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items WHERE sale_id = ' . $id)) {
+		if ($exc && $this -> db -> query('DELETE FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items WHERE sale_id = ' . $id) && $this -> db -> query('DELETE FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_costing WHERE sale_id = ' . $id)) {
 			$purchase_id = $id;
 			foreach ($items as $item) {
 				$item['sale_id'] = $id;
 				$item['option_id'] = !empty($item['option_id']) && is_numeric($item['option_id']) ? $item['option_id'] : NULL;
 				try {
 					if (empty($item['id'])) {
-						$stmt = $this -> db -> prepare('INSERT INTO ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items (sale_id, product_id, product_code, product_name, option_id, net_unit_price, quantity, warehouse_id, item_tax, tax_rate_id, tax, discount, item_discount, subtotal, unit_price, real_unit_price, serial_no, sale_item_id, product_unit_id, product_unit_code, unit_quantity, gst, cgst, sgst, igst) VALUES (:sale_id, :product_id, :product_code, :product_name, :option_id, :net_unit_price, :quantity, :warehouse_id, :item_tax, :tax_rate_id, :tax, :discount, :item_discount, :subtotal, :unit_price, :real_unit_price, :serial_no, :sale_item_id, :product_unit_id, :product_unit_code, :unit_quantity, :gst, :cgst, :sgst, :igst)');
+						$stmt = $this -> db -> prepare('INSERT INTO ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items (sale_id, product_id, product_code, product_name, option_id, net_unit_price, quantity, warehouse_id, item_tax, tax_rate_id, tax, discount, item_discount, subtotal, unit_price, real_unit_price, serial_no, sale_item_id, product_unit_id, product_unit_code, unit_quantity, gst, cgst, sgst, igst, module, saiidsite, saiparentid) VALUES (:sale_id, :product_id, :product_code, :product_name, :option_id, :net_unit_price, :quantity, :warehouse_id, :item_tax, :tax_rate_id, :tax, :discount, :item_discount, :subtotal, :unit_price, :real_unit_price, :serial_no, :sale_item_id, :product_unit_id, :product_unit_code, :unit_quantity, :gst, :cgst, :sgst, :igst, :module, :idsite, :parentid)');
 					} else {
 						$stmt = $this -> db -> prepare('UPDATE ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items SET sale_id = :sale_id, product_id = :product_id, product_code = :product_code, product_name = :product_name, option_id = :option_id, net_unit_price = :net_unit_price, quantity = :quantity, warehouse_id = :warehouse_id, item_tax = :item_tax, tax_rate_id = :tax_rate_id, tax = :tax, discount = :discount, item_discount = :item_discount, subtotal = :subtotal, unit_price = :unit_price, real_unit_price = :real_unit_price, serial_no = :serial_no, sale_item_id = :sale_item_id, product_unit_id = :product_unit_id, product_unit_code = :product_unit_code, unit_quantity = :unit_quantity, gst = :gst, cgst = :cgst, sgst = :sgst, igst = :igst WHERE id=' . $row['id']);
 					}
@@ -370,7 +380,50 @@ class Sales_model extends Model
 					$stmt -> bindParam(':cgst', $item['cgst'], PDO::PARAM_STR);
 					$stmt -> bindParam(':sgst', $item['sgst'], PDO::PARAM_STR);
 					$stmt -> bindParam(':igst', $item['igst'], PDO::PARAM_STR);
+		            $stmt->bindParam(':module', $this->mod_data_sales, PDO::PARAM_STR);
+					$stmt->bindParam(':idsite', $global_config['idsite'], PDO::PARAM_INT);
+					$stmt->bindParam(':parentid', $global_config['parentid'], PDO::PARAM_INT);
 					$exc = $stmt -> execute();
+					$sale_item_id = $this -> db -> lastInsertId();
+					if ($data['sale_status'] == 4 && $this->site->getProductByID($item['product_id'])) {
+						$item_costs = $this->site->item_costing($item);
+						/* print_r($item_costs); */
+						foreach ($item_costs as $item_cost) {
+							if (isset($item_cost['date']) || isset($item_cost['pi_overselling'])) {
+								$item_cost['sale_item_id'] = $sale_item_id;
+								$item_cost['sale_id'] = $id;
+								$item_cost['date'] = date('Y-m-d', strtotime($data['date']));
+								if(! isset($item_cost['pi_overselling'])) {
+									//$this->db->insert('costing', $item_cost);
+									$row = $item_cost;
+								}
+							} else {
+								foreach ($item_cost as $ic) {
+									$ic['sale_item_id'] = $sale_item_id;
+									$ic['sale_id'] = $id;
+									$ic['date'] = date('Y-m-d', strtotime($data['date']));
+									if(! isset($ic['pi_overselling'])) {
+										//$this->db->insert('costing', $ic);
+										$row = $ic;
+									}
+								}
+							}
+							$stmt = $this -> db ->prepare('INSERT INTO ' . $this->db_prefix . '_' . $this->mod_data . '_costing (date, product_id, sale_item_id, sale_id, purchase_item_id, quantity, sale_net_unit_price, sale_unit_price, quantity_balance, inventory, overselling, option_id) VALUES (:date, :product_id, :sale_item_id, :sale_id, :purchase_item_id, :quantity, :sale_net_unit_price, :sale_unit_price, :quantity_balance, :inventory, :overselling, :option_id)');
+							$stmt->bindParam(':date', $row['date'], PDO::PARAM_STR);
+							$stmt->bindParam(':product_id', $row['product_id'], PDO::PARAM_INT);
+							$stmt->bindParam(':sale_item_id', $row['sale_item_id'], PDO::PARAM_INT);
+							$stmt->bindParam(':sale_id', $row['sale_id'], PDO::PARAM_INT);
+							$stmt->bindParam(':purchase_item_id', $row['purchase_item_id'], PDO::PARAM_INT);
+							$stmt->bindParam(':quantity', $row['quantity'], PDO::PARAM_STR);
+							$stmt->bindParam(':sale_net_unit_price', $row['sale_net_unit_price'], PDO::PARAM_STR);
+							$stmt->bindParam(':sale_unit_price', $row['sale_unit_price'], PDO::PARAM_STR);
+							$stmt->bindParam(':quantity_balance', $row['quantity_balance'], PDO::PARAM_STR);
+							$stmt->bindParam(':inventory', $row['inventory'], PDO::PARAM_INT);
+							$stmt->bindParam(':overselling', $row['overselling'], PDO::PARAM_INT);
+							$stmt->bindParam(':option_id', $row['option_id'], PDO::PARAM_INT);
+							$exc = $stmt->execute();
+						}
+					}
 					
 				} catch(PDOException $e) {
 					trigger_error($e -> getMessage());
@@ -378,31 +431,111 @@ class Sales_model extends Model
 					die($e -> getMessage());
 					//Remove this line after checks finished
 				}
+				
+			}	
+			if ($data['sale_status'] == 4) {
+                $this->site->syncPurchaseItems($cost);
+            }
 
-				if ($this -> Settings -> update_price) {
-					$this -> db -> query('UPDATE ' . $this->db_systems . '.' . $this->db_prefix . '_san_pham_rows SET price =' . $item['real_unit_price'] . 'WHERE id = ' . $item['product_id']);
-				}
-				if ($item['option_id']) {
-					$this -> db -> query('UPDATE ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_product_variants SET price =' . $item['real_unit_price'] . 'WHERE id = ' . $item['option_id'] . ' AND product_id = ' . $item['product_id']);
-				}
-
-				if ($data['status'] == '4' || $data['status'] == '5') {
-					$this -> updateAVCO(array('product_id' => $item['product_id'], 'warehouse_id' => $item['warehouse_id'], 'quantity' => $item['quantity'], 'price' => $item['real_unit_price']));
-				}
-			}
-			$this -> site -> syncQuantity(NULL, NULL, $oitems);
-			if ($data['status'] == '4' || $data['status'] == '5') {
-				$this -> site -> syncQuantity(NULL, $id);
-				foreach ($oitems as $oitem) {
-					$this -> updateAVCO(array('product_id' => $oitem->product_id, 'warehouse_id' => $oitem->warehouse_id, 'quantity' => (0 - $oitem->quantity), 'price' => $oitem->real_unit_price));
-				}
-			}
-			$this -> site -> syncPurchasePayments($id);
+            $this->site->syncSalePayments($id);
+            $this->site->syncQuantity($id);
+            $sale = $this->getInvoiceByID($id);
 			return true;
 		}
-
 		return false;
 	}
+	public function asffgh($id){
+		
+	}
+	public function deleteSale($id)
+    {
+        $sale_items = $this->resetSaleActions($id);
+        if ($this->db->query('DELETE FROM ' . $this->db_prefix . '_' . $this->mod_data . '_sale_items  WHERE sale_id = ' . $this->db->quote($id)) &&
+        $this->db->query('DELETE FROM ' . $this->db_prefix . '_' . $this->mod_data . '_sales  WHERE id = ' . $this->db->quote($id)) &&
+        $this->db->query('DELETE FROM ' . $this->db_prefix . '_' . $this->mod_data . '_costing  WHERE sale_id = ' . $this->db->quote($id))) {
+            $this->db->query('DELETE FROM ' . $this->db_prefix . '_' . $this->mod_data . '_sales  WHERE id = ' . $this->db->quote($id));
+            $this->db->query('DELETE FROM ' . $this->db_prefix . '_' . $this->mod_data . '_payments  WHERE sale_id = ' . $this->db->quote($id));
+            $this->site->syncQuantity(NULL, NULL, $sale_items);
+            return true;
+        }
+        return FALSE;
+    }
+	public function resetSaleActions($id, $return_id = NULL, $check_return = NULL)
+    {
+        if ($sale = $this->getInvoiceByID($id)) {
+            if ($check_return && $sale->sale_status == 'returned') {
+                $this->session->set_flashdata('warning', lang('sale_x_action'));
+                redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'welcome');
+            }
+			
+            if ($sale->sale_status == 4) {
+                if ($costings = $this->getSaleCosting($id)) {/* print_r($costings);  */ /* print_r($costings); */
+                    foreach ($costings as $costing) {
+                        if ($pi = $this->getPurchaseItemByID($costing->purchase_item_id)) { 
+                            $this->site->setPurchaseItem(['id' => $pi->id, 'product_id' => $pi->product_id, 'option_id' => $pi->option_id], $costing->quantity);
+                        } else {print_r('sale');die;
+                            $sale_item = $this->getSaleItemByID($costing->sale_item_id);
+                            $pi = $this->site->getPurchasedItem(['product_id' => $costing->product_id, 'option_id' => $costing->option_id ? $costing->option_id : NULL, 'purchase_id' => NULL, 'transfer_id' => NULL, 'warehouse_id' => $sale_item->warehouse_id]);
+							
+							$this->site->setPurchaseItem(['id' => $pi->id, 'product_id' => $pi->product_id, 'option_id' => $pi->option_id], $costing->quantity);
+                        }
+                    }
+                }
+                $items = $this->getAllInvoiceItems($id);
+                $this->site->syncQuantity(NULL, NULL, $items);
+                $this->sma->update_award_points($sale->grand_total, $sale->customer_id, $sale->created_by, TRUE);
+                return $items;
+            }
+        }
+    }
+	public function getAllInvoiceItems($sale_id, $return_id = NULL)
+    {
+        $this->db->sqlreset()->select('sale_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, products.homeimgfile image, products.' . NV_LANG_DATA . '_bodytext as details, product_variants.name as variant, products.hsn_code as hsn_code, products.second_name as second_name')
+            ->from($this->db_prefix . '_' . $this->mod_data . '_sale_items  sale_items')
+			->join('LEFT JOIN ' . $this->db_prefix . '_san_pham_rows products ON products.id=sale_items.product_id LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_product_variants product_variants ON product_variants.id=sale_items.option_id LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_tax_rates tax_rates ON tax_rates.id=sale_items.tax_rate_id')
+            ->group('sale_items.id')
+            ->order('id asc');
+        if ($sale_id && !$return_id) {
+            $this->db->where('sale_id = ' . $sale_id);
+        } elseif ($return_id) {
+            $this->db->where('sale_id = ' . $return_id);
+        }
+        $q = $this->db->query($this->db->sql());
+        if ($q->rowCount() > 0) {
+            foreach (($q->fetchAll(5)) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
+	public function getSaleItemByID($id)
+    {
+		$q = $this->db->query('SELECT * FROM ' . $this->db_prefix . '_' . $this->mod_data . '_sale_items WHERE id = "' . $id . '"');
+        if ($q->rowCount() > 0) {
+            return $q->fetch(5);
+        }
+        return FALSE;
+    }
+	public function getPurchaseItemByID($id)
+    {
+        $q = $this->db->query('SELECT * FROM ' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items WHERE id = "' . $id . '"');
+        if ($q->rowCount() > 0) {
+            return $q->fetch(5);
+        }
+        return FALSE;
+    }
+	public function getSaleCosting($sale_id)
+    {
+        $q = $this->db->query('SELECT * FROM ' . $this->db_prefix . '_' . $this->mod_data . '_costing WHERE sale_id = "' . $sale_id . '"');
+        if ($q->rowCount() > 0) {
+            foreach (($q->fetchAll(5)) as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return FALSE;
+    }
 	public function getProductByCode($code)
     {
         $q = $this->db->query('SELECT * FROM ' . $this->db_prefix . '_san_pham_rows WHERE product_code = "' . $code . '"');
