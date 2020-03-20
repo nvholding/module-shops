@@ -111,7 +111,7 @@ if (!empty($error)) {
 $xtpl->parse('main');
 $contents = $xtpl->text('main');
 
-$page_title = $title_manager_store;
+$page_title = '';
 
 include NV_ROOTDIR . '/includes/header.php';
 echo nv_admin_theme($contents);

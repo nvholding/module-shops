@@ -110,24 +110,25 @@ $xtpl->assign('date_to', date("d/m/Y" , $date_to));
 //print_r($sales);die;
 $number=1;
 if ($show_view) {
-    
-    foreach ($sales as $key => $sale) {
-    	//print_r($sale);
-    	 //$sale['date'] = (empty($sale['date'])) ? '' : nv_date('H:i d/m/Y', $sale['date']);
-			$sale['money_nofomart'] = storehouse_number_format( (($sale['grand_total'] -  $sale['paid']) > 0) ? ($sale['grand_total'] -  $sale['paid']) : 0 ,0,'','');
-			$sale['grand_total_fomart'] = storehouse_number_format( $sale['grand_total'],0);
-			$sale['customer_id'] = $array_customer_id_storehouse[$sale['customer_id']]['company'];
-			$sale['warehouse_id'] = $array_warehouse_id_storehouse[$sale['warehouse_id']]['name'];
-			$sale['status'] = $array_sales_status[$sale['sale_status']];
-			$sale['payment_status'] = $array_payment_status[$sale['payment_status']];
-			$sale['total_format'] = storehouse_number_format( $sale['total'] ,0);
-			$sale['paid_format'] = storehouse_number_format( $sale['paid'] ,0);
-			$sale['balance_format'] = storehouse_number_format( $sale['balance'] ,0);
-			$sale['no'] = $number;
-    	$xtpl->assign('SALES', $sale);
-        $xtpl->parse('main.view.sales');
-		$number++;
-    }
+    if(!empty($sales)){
+		foreach ($sales as $key => $sale) {
+			//print_r($sale);
+			 //$sale['date'] = (empty($sale['date'])) ? '' : nv_date('H:i d/m/Y', $sale['date']);
+				$sale['money_nofomart'] = storehouse_number_format( (($sale['grand_total'] -  $sale['paid']) > 0) ? ($sale['grand_total'] -  $sale['paid']) : 0 ,0,'','');
+				$sale['grand_total_fomart'] = storehouse_number_format( $sale['grand_total'],0);
+				$sale['customer_id'] = $array_customer_id_storehouse[$sale['customer_id']]['company'];
+				$sale['warehouse_id'] = $array_warehouse_id_storehouse[$sale['warehouse_id']]['name'];
+				$sale['status'] = $array_sales_status[$sale['sale_status']];
+				$sale['payment_status'] = $array_payment_status[$sale['payment_status']];
+				$sale['total_format'] = storehouse_number_format( $sale['total'] ,0);
+				$sale['paid_format'] = storehouse_number_format( $sale['paid'] ,0);
+				$sale['balance_format'] = storehouse_number_format( $sale['balance'] ,0);
+				$sale['no'] = $number;
+			$xtpl->assign('SALES', $sale);
+			$xtpl->parse('main.view.sales');
+			$number++;
+		}
+	}
      $xtpl->parse('main.view');
 }
 
@@ -140,7 +141,7 @@ if (!empty($error)) {
 $xtpl->parse('main');
 $contents = $xtpl->text('main');
 
-$page_title = $title_manager_store;
+$page_title = '';
 
 include NV_ROOTDIR . '/includes/header.php';
 echo nv_admin_theme($contents);

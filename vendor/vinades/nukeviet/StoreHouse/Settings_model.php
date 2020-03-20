@@ -113,7 +113,7 @@ class Settings_model extends Model
 
     public function getAllWarehouses()
     {
-        $q = $this->db->query('SELECT * FROM ' . $this->db_prefix. '_' . $this->mod_data . '_warehouses');
+        $q = $this->db->query('SELECT * FROM ' . $this->db_systems . '.' . $this->db_prefix. '_' . $this->mod_data . '_warehouses');
         if ($q->rowCount() > 0) {
             foreach (($q->fetchAll(5)) as $row) {
                 $data[] = $row;

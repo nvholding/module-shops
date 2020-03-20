@@ -18,7 +18,7 @@ class Site extends Model
         $date = date('Y-m-d', strtotime('+3 months'));
         $this->db->sqlreset()->select('SUM(quantity_balance) as alert_num')
         ->where('expiry != NULL AND expiry != "0000-00-00" AND expiry < '. $date);
-        $q = $this->db->query('SELECT * FROM ' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items');
+        $q = $this->db->query('SELECT * FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items');
         if ($q->rowCount() > 0) {
             $res = $q->fetch(PDO::FETCH_OBJ);
             return (INT) $res->alert_num;
@@ -49,7 +49,7 @@ class Site extends Model
     }
 
     public function getDateFormat($id) {
-        $q = $this->db->query('SELECT * FROM ' . $this->db_prefix . '_' . $this->mod_data . '_date_format WHERE id =' . $id);
+        $q = $this->db->query('SELECT * FROM ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_date_format WHERE id =' . $id);
         if ($q->rowCount() > 0) {
             return $q->fetch(PDO::FETCH_OBJ);
         } 
@@ -335,7 +335,7 @@ class Site extends Model
     }
 
     public function getSaleByReference($ref) {
-    	$this->db->sqlreset()->select('*')->from($this->db_prefix . "_" . $this->mod_data . "_sales");
+    	$this->db->sqlreset()->select('*')->from($this->db_systems . "." . $this->db_prefix . "_" . $this->mod_data . "_sales");
 		$this->db->where('reference_no like "%' . $ref . '%"');
          $q = $this->db->query($this->db->sql());
         if ($q->rowCount() > 0) {

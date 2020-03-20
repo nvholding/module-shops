@@ -138,11 +138,11 @@ class Reports_model extends Model
     }
 	public function getWarehouseStockValue($id)
     {
-        $q = $this->db->query("SELECT SUM(by_price) as stock_by_price, SUM(by_cost) as stock_by_cost FROM ( Select sum(COALESCE(" . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.quantity, 0))*price as by_price, sum(COALESCE(" 
-        	. $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.quantity, 0))*cost as by_cost FROM " . $this->db_prefix . "_" . $this->mod_data . "_products 
+        $q = $this->db->query("SELECT SUM(by_price) as stock_by_price, SUM(by_cost) as stock_by_cost FROM ( Select sum(COALESCE(" . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.quantity, 0))*price as by_price, sum(COALESCE(" 
+        	. $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.quantity, 0))*cost as by_cost FROM " . $this->db_prefix . "_" . $this->mod_data . "_san_pham_rows 
         	JOIN " . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products ON 
-        	" . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.product_id=" . $this->db_prefix . "_" . $this->mod_data . "_products.id 
-        	WHERE " . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.warehouse_id = " . $id . " GROUP BY " . $this->db_prefix . "_" . $this->mod_data . "_products.id )a "  );
+        	" . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.product_id=" . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_san_pham_rows.id 
+        	WHERE " . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.warehouse_id = " . $id . " GROUP BY " . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_san_pham_rows.id )a "  );
         if ($q->rowCount() > 0) {
             return $q->fetch(5);
         }
@@ -174,16 +174,16 @@ class Reports_model extends Model
 		else
 			$list_wh_id = '';
     	if($list_wh_id !=''){
-			$where = " " . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.warehouse_id IN ( " . $list_wh_id . ")";
+			$where = " " . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.warehouse_id IN ( " . $list_wh_id . ")";
     	}else{
 			$where = "1";
 		}
     	//print_r($store_id);
-        $q = $this->db->query("SELECT SUM(by_price) as stock_by_price, SUM(by_cost) as stock_by_cost FROM ( Select sum(COALESCE(" . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.quantity, 0))*price as by_price, sum(COALESCE(" 
-        	. $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.quantity, 0))*cost as by_cost FROM " . $this->db_prefix . "_" . $this->mod_data . "_products 
+        $q = $this->db->query("SELECT SUM(by_price) as stock_by_price, SUM(by_cost) as stock_by_cost FROM ( Select sum(COALESCE(" . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.quantity, 0))*price as by_price, sum(COALESCE(" 
+        	. $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.quantity, 0))*cost as by_cost FROM " . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_san_pham_rows 
         	JOIN " . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products ON 
-        	" . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.product_id=" . $this->db_prefix . "_" . $this->mod_data . "_products.id 
-        	WHERE " . $where . " GROUP BY " . $this->db_prefix . "_" . $this->mod_data . "_products.id ) a " );
+        	" . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products.product_id=" . $this->db_systems . '.' . $this->db_prefix . "_san_pham_rows.id 
+        	WHERE " . $where . " GROUP BY " . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_san_pham_rows.id ) a " );
         
         
         if ($q->rowCount() > 0) {
@@ -223,7 +223,7 @@ class Reports_model extends Model
 		}
 		
         $this->db->sqlreset()->select('sum(quantity) as total_quantity, count(id) as total_items')
-		->from($this->db_prefix . "_" . $this->mod_data . "_warehouses_products")
+		->from($this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_warehouses_products")
 		->where('quantity != 0 ' . $where);
 		//die($this->db->sql());
         $q = $this->db->query($this->db->sql());
@@ -266,14 +266,14 @@ class Reports_model extends Model
 			$where= '';
 		//print_r($where);
         $this->db->sqlreset()
-            ->select("" . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_products.name as product_name, product_code, sum(" . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_sale_items.quantity) as total_quantity")
+            ->select("" . $this->db_systems . '.' . $this->db_prefix . "_san_pham_rows." . NV_LANG_DATA . "_title as product_name, " . $this->db_systems . '.' . $this->db_prefix . "_san_pham_rows.product_code as product_code, sum(" . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_sale_items.quantity) as total_quantity")
 			->from($this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_sale_items")
             ->join('LEFT JOIN ' . $this->db_systems . '.' .  $this->db_prefix . '_' . $this->mod_data . '_sales ON ' . $this->db_prefix . '_' . $this->mod_data . '_sales.id = ' . $this->db_systems . '.' .  $this->db_prefix . '_' . $this->mod_data . '_sale_items.sale_id LEFT JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_san_pham_rows ON ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_sale_items.product_id = ' . $this->db_systems . '.' . $this->db_prefix . '_san_pham_rows.id ')
             ->where('date >= '. $start_date . ' AND date <= 1541063634 ' . $where)
             ->group('product_name, product_code')
             ->order('total_quantity desc')
             ->limit(10);
-        //print_r($this->db->sql());
+        /* print_r($this->db->sql()); */
         $q = $this->db->query($this->db->sql());
         if ($q->rowCount() > 0) {
             
@@ -290,7 +290,7 @@ class Reports_model extends Model
 	public function getStaffDailySales($user_id, $year, $month, $warehouse_id = NULL)
     {
         $myQuery = "SELECT DATE_FORMAT( date,  '%e' ) AS date, SUM( COALESCE( product_tax, 0 ) ) AS tax1, SUM( COALESCE( order_tax, 0 ) ) AS tax2, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( total_discount, 0 ) ) AS discount, SUM( COALESCE( shipping, 0 ) ) AS shipping
-            FROM " . $this->db_prefix . "_" . $this->mod_data . "_sales WHERE ";
+            FROM " . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_sales WHERE ";
         if ($warehouse_id) {
             $myQuery .= " warehouse_id = " . $warehouse_id . " AND ";
         }
@@ -308,7 +308,7 @@ class Reports_model extends Model
 	public function getDailySales($year, $month, $warehouse_id = NULL)
     {
         $myQuery = "SELECT DATE_FORMAT( FROM_UNIXTIME(date),  '%e' ) AS date, SUM( COALESCE( product_tax, 0 ) ) AS tax1, SUM( COALESCE( order_tax, 0 ) ) AS tax2, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( total_discount, 0 ) ) AS discount, SUM( COALESCE( shipping, 0 ) ) AS shipping
-            FROM " . $this->db_prefix . "_" . $this->mod_data . "_sales WHERE ";
+            FROM " . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_sales WHERE ";
         if ($warehouse_id) {
             $myQuery .= " warehouse_id IN ( " .$warehouse_id. ") AND ";
         }
@@ -327,7 +327,7 @@ class Reports_model extends Model
 	public function getMonthlySales($year, $warehouse_id = NULL)
     {
         $myQuery = "SELECT DATE_FORMAT( FROM_UNIXTIME(date),  '%c' ) AS date, SUM( COALESCE( product_tax, 0 ) ) AS tax1, SUM( COALESCE( order_tax, 0 ) ) AS tax2, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( total_discount, 0 ) ) AS discount, SUM( COALESCE( shipping, 0 ) ) AS shipping
-            FROM " . $this->db_prefix . "_" . $this->mod_data . "_sales WHERE ";
+            FROM " . $this->db_systems . '.' . $this->db_prefix . "_" . $this->mod_data . "_sales WHERE ";
         if ($warehouse_id) {
             $myQuery .= " warehouse_id IN ( " .$warehouse_id. ") AND ";
         }

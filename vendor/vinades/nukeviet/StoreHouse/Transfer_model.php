@@ -50,7 +50,7 @@ class Transfer_model extends Model {
 	}
 
 	public function getProductByCode($code) {
-		$q = $this -> db -> query('SELECT * FROM ' . $this -> db_prefix . '_' . $this -> mod_data . '_products WHERE code = "' . $code . '"');
+		$q = $this -> db -> query('SELECT * FROM ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_products WHERE code = "' . $code . '"');
 		if ($q -> rowCount() > 0) {
 			return $q -> fetch(PDO::FETCH_OBJ);
 		}
@@ -58,7 +58,7 @@ class Transfer_model extends Model {
 	}
 
 	public function getProductByName($name) {
-		$q = $this -> db -> query('SELECT * FROM ' . $this -> db_prefix . '_' . $this -> mod_data . '_products WHERE name = "' . $name . '"');
+		$q = $this -> db -> query('SELECT * FROM ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_products WHERE name = "' . $name . '"');
 		if ($q -> rowCount() > 0) {
 			return $q -> fetch(PDO::FETCH_OBJ);
 		}
@@ -77,8 +77,8 @@ class Transfer_model extends Model {
 
 	public function getAllPurchaseItems($purchase_id) {
 		$this -> db ->sqlreset() -> select('purchase_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, products.unit, products.details as details, product_variants.name as variant, products.hsn_code as hsn_code, products.second_name as second_name')
-		->from($this->db_prefix . '_' . $this->mod_data . '_purchase_items as purchase_items')
-		-> join('LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_products as products ON products.id=purchase_items.product_id LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_product_variants as product_variants  ON product_variants.id=purchase_items.option_id LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_tax_rates as tax_rates ON tax_rates.id=purchase_items.tax_rate_id')
+		->from($this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_purchase_items as purchase_items')
+		-> join('LEFT JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_products as products ON products.id=purchase_items.product_id LEFT JOIN ' . $this->db_systems . '.' . $this->db_prefix . '_' . $this->mod_data . '_product_variants as product_variants  ON product_variants.id=purchase_items.option_id LEFT JOIN ' . $this->db_prefix . '_' . $this->mod_data . '_tax_rates as tax_rates ON tax_rates.id=purchase_items.tax_rate_id')
 		->where('purchase_id =' . $purchase_id)
 		-> group('purchase_items.id') -> order('id asc');
 		$q = $this -> db -> query($this->db->sql());
@@ -108,7 +108,7 @@ class Transfer_model extends Model {
 	}
 
 	public function getPurchaseByID($id) {
-		$q = $this -> db -> query('SELECT * FROM ' . $this->db_prefix. '_' . $this->mod_data . '_purchases WHERE id = ' . $id);
+		$q = $this -> db -> query('SELECT * FROM ' . $this->db_systems . '.' . $this->db_prefix. '_' . $this->mod_data . '_purchases WHERE id = ' . $id);
 		if ($q -> rowCount() > 0) {
 			return $q -> fetch(5);
 		}
@@ -174,7 +174,7 @@ class Transfer_model extends Model {
 	 public function addTransfer($data = array(), $items = array())
     {
     	$status = $data['status'];
-		$stmt = $this -> db ->prepare('INSERT INTO ' . $this -> db_prefix . '_' . $this -> mod_data . '_transfers (transfer_no, date, from_warehouse_id, from_warehouse_code, from_warehouse_name, to_warehouse_id, to_warehouse_code, to_warehouse_name, note, total, total_tax, grand_total, created_by, status, shipping, attachment, cgst, sgst, igst) VALUES (:transfer_no, :date, :from_warehouse_id, :from_warehouse_code, :from_warehouse_name, :to_warehouse_id, :to_warehouse_code, :to_warehouse_name, :note, :total, :total_tax, :grand_total, :created_by, :status, :shipping, :attachment, :cgst, :sgst, :igst)');
+		$stmt = $this -> db ->prepare('INSERT INTO ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_transfers (transfer_no, date, from_warehouse_id, from_warehouse_code, from_warehouse_name, to_warehouse_id, to_warehouse_code, to_warehouse_name, note, total, total_tax, grand_total, created_by, status, shipping, attachment, cgst, sgst, igst) VALUES (:transfer_no, :date, :from_warehouse_id, :from_warehouse_code, :from_warehouse_name, :to_warehouse_id, :to_warehouse_code, :to_warehouse_name, :note, :total, :total_tax, :grand_total, :created_by, :status, :shipping, :attachment, :cgst, :sgst, :igst)');
 		$stmt->bindParam(':from_warehouse_code', $data['from_warehouse_code'], PDO::PARAM_STR);
         $stmt->bindParam(':from_warehouse_name', $data['from_warehouse_name'], PDO::PARAM_STR);
         $stmt->bindParam(':to_warehouse_code', $data['to_warehouse_code'], PDO::PARAM_STR);
@@ -254,7 +254,7 @@ class Transfer_model extends Model {
                 } else {
                     $item['status'] = 0;
 					try {
-			            $stmt = $this-> db->prepare('INSERT INTO ' . $this -> db_prefix . '_' . $this -> mod_data . '_transfer_items (transfer_id, product_id, product_code, product_name, option_id, expiry, quantity, tax_rate_id, tax, item_tax, net_unit_cost, subtotal, quantity_balance, unit_cost, real_unit_cost, date, warehouse_id, product_unit_id, product_unit_code, unit_quantity, gst, cgst, sgst, igst) VALUES (:transfer_id, :product_id, :product_code, :product_name, :option_id, :expiry, :quantity, :tax_rate_id, :tax, :item_tax, :net_unit_cost, :subtotal, :quantity_balance, :unit_cost, :real_unit_cost, :date, :warehouse_id, :product_unit_id, :product_unit_code, :unit_quantity, :gst, :cgst, :sgst, :igst)');
+			            $stmt = $this-> db->prepare('INSERT INTO ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_transfer_items (transfer_id, product_id, product_code, product_name, option_id, expiry, quantity, tax_rate_id, tax, item_tax, net_unit_cost, subtotal, quantity_balance, unit_cost, real_unit_cost, date, warehouse_id, product_unit_id, product_unit_code, unit_quantity, gst, cgst, sgst, igst) VALUES (:transfer_id, :product_id, :product_code, :product_name, :option_id, :expiry, :quantity, :tax_rate_id, :tax, :item_tax, :net_unit_cost, :subtotal, :quantity_balance, :unit_cost, :real_unit_cost, :date, :warehouse_id, :product_unit_id, :product_unit_code, :unit_quantity, :gst, :cgst, :sgst, :igst)');
 			            $stmt->bindParam(':transfer_id', $item['transfer_id'], PDO::PARAM_INT);
 			            $stmt->bindParam(':product_id', $item['product_id'], PDO::PARAM_INT);
 			            $stmt->bindParam(':product_code', $item['product_code'], PDO::PARAM_STR);
@@ -338,7 +338,7 @@ class Transfer_model extends Model {
 
 	public function getWarehouseProductQuantity($warehouse_id, $product_id) {
 
-		$q = $this -> db -> query('SELECT * FROM ' . $this -> db_prefix . '_' . $this -> mod_data . '_warehouses_products WHERE warehouse_id = ' . $warehouse_id . ' AND product_id = ' . $product_id);
+		$q = $this -> db -> query('SELECT * FROM ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_warehouses_products WHERE warehouse_id = ' . $warehouse_id . ' AND product_id = ' . $product_id);
 		if ($q -> rowCount() > 0) {
 			return $q -> fetch(PDO::FETCH_OBJ);
 		}
@@ -617,11 +617,11 @@ class Transfer_model extends Model {
 			if (!empty($total_quantity)) {
 				$avg_cost = ($total_cost / $total_quantity);
 
-				$this -> db -> query('UPDATE ' . $this -> db_prefix . '_' . $this -> mod_data . '_warehouses_products SET avg_cost =' . $avg_cost . ' WHERE product_id = ' . $data['product_id'] . ' AND warehouse_id = ' . $data['warehouse_id']);
+				$this -> db -> query('UPDATE ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_warehouses_products SET avg_cost =' . $avg_cost . ' WHERE product_id = ' . $data['product_id'] . ' AND warehouse_id = ' . $data['warehouse_id']);
 
 			}
 		} else {
-			$this -> db -> query('INSERT INTO ' . $this -> db_prefix . '_' . $this -> mod_data . '_warehouses_products (product_id, warehouse_id, avg_cost, quantity) VALUES(' . $data['product_id'] . ', ' . $data['warehouse_id'] . ',' . $data['cost'] . ',0)');
+			$this -> db -> query('INSERT INTO ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_warehouses_products (product_id, warehouse_id, avg_cost, quantity) VALUES(' . $data['product_id'] . ', ' . $data['warehouse_id'] . ',' . $data['cost'] . ',0)');
 		}
 	}
 	public function syncTransderdItem($product_id, $warehouse_id, $quantity, $option_id = NULL)
@@ -632,12 +632,12 @@ class Transfer_model extends Model {
                 if ($balance_qty <= $quantity && $quantity > 0) {
                     if ($pi->quantity_balance >= $quantity) {
                         $balance_qty = $pi->quantity_balance - $quantity;
-						$this -> db -> query('UPDATE ' . $this -> db_prefix . '_' . $this -> mod_data . '_purchase_items SET quantity_balance =' . $balance_qty . ' WHERE id = ' . $pi->id );
+						$this -> db -> query('UPDATE ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_purchase_items SET quantity_balance =' . $balance_qty . ' WHERE id = ' . $pi->id );
                         $quantity = 0;
                     } elseif ($quantity > 0) {
                         $quantity = $quantity - $pi->quantity_balance;
                         $balance_qty = $quantity;
-                        $this -> db -> query('UPDATE ' . $this -> db_prefix . '_' . $this -> mod_data . '_purchase_items SET quantity_balance = 0 WHERE id = ' . $pi->id );
+                        $this -> db -> query('UPDATE ' . $this->db_systems . '.' . $this -> db_prefix . '_' . $this -> mod_data . '_purchase_items SET quantity_balance = 0 WHERE id = ' . $pi->id );
                     }
                 }
                 if ($quantity == 0) { break; }
