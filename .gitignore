@@ -1,23 +1,2 @@
 # Ignore some static files and directories.
-/.gitattributes
-/.gitignore
-/.settings/
-/.buildpath
-/.project
-/.htaccess
-/composer.json
-/config.php
-/CHANGELOG.txt
-/COPYRIGHT.txt
-/favicon.ico
-/index.php
-/LICENSE.txt
-/robots.php
-/robots.txt
-/web.config
-/admin/
-/data/
-/includes/
-/install/
-/error.php
-/.github
+
