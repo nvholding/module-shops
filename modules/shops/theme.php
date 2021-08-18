@@ -7,6 +7,7 @@
  * @License GNU/GPL version 2 or any later version
  * @Createdate 04/18/2017 09:47
  */
+
 if (!defined('NV_IS_MOD_SHOPS')) {
     die('Stop!!!');
 }
@@ -71,6 +72,7 @@ function nv_template_view_home($array_data, $compare_id, $pages = '', $sort = 0,
     global $module_info, $lang_module, $module_name, $module_file, $pro_config, $array_wishlist_id, $global_array_shops_cat, $global_array_group, $my_head;
 
     $xtpl = new XTemplate('main.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
+    $xtpl->assign('MODULE_NAME', $module_name);
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('TEMPLATE', $module_info['template']);
 
@@ -80,36 +82,56 @@ function nv_template_view_home($array_data, $compare_id, $pages = '', $sort = 0,
         }
         $xtpl->parse('main.viewall');
     } elseif ($pro_config['home_data'] == 'cat' || $pro_config['home_data'] == 'group') {
-        if (!empty($array_data)) {
-            foreach ($array_data as $data_row) {
-                if ($data_row['num_pro'] > 0) {
-                    $xtpl->assign('TITLE_CATALOG', $data_row['title']);
-                    $xtpl->assign('LINK_CATALOG', $data_row['link']);
-                    $xtpl->assign('NUM_PRO', $data_row['num_pro']);
+        $xtpl->assign('CONTENT', nv_template_main_cat($array_data, $pages, $viewtype));
+        $xtpl->parse('main.viewcat');
+    }
 
-                    if (function_exists('nv_template_' . $viewtype)) {
-                        $xtpl->assign('CONTENT', call_user_func('nv_template_' . $viewtype, $data_row['data'], $pages));
-                    }
+    $xtpl->parse('main');
+    return $xtpl->text('main');
+}
 
-                    if (!empty($data_row['subcatid'])) {
-                        $data_row['subcatid'] = explode(',', $data_row['subcatid']);
-                        foreach ($data_row['subcatid'] as $subcatid) {
-                            $items = $global_array_shops_cat[$subcatid];
-                            if ($items['inhome']) {
-                                $xtpl->assign('SUBCAT', $global_array_shops_cat[$subcatid]);
-                                $xtpl->parse('main.viewcat.catalogs.subcatloop');
-                            }
+/**
+ * @param array $array_data
+ * @param string $pages
+ * @param string $viewtype
+ * @return string
+ */
+function nv_template_main_cat($array_data, $pages = '', $viewtype = 'viewgrid')
+{
+    global $module_info, $module_file, $lang_module, $lang_global, $global_array_shops_cat;
+
+    $xtpl = new XTemplate('main_cat.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
+    $xtpl->assign('GLANG', $lang_global);
+    $xtpl->assign('LANG', $lang_module);
+
+    if (!empty($array_data)) {
+        foreach ($array_data as $data_row) {
+            if ($data_row['num_pro'] > 0) {
+                $xtpl->assign('TITLE_CATALOG', $data_row['title']);
+                $xtpl->assign('LINK_CATALOG', $data_row['link']);
+                $xtpl->assign('NUM_PRO', $data_row['num_pro']);
+
+                if (function_exists('nv_template_' . $viewtype)) {
+                    $xtpl->assign('CONTENT', call_user_func('nv_template_' . $viewtype, $data_row['data'], $pages));
+                }
+
+                if (!empty($data_row['subcatid'])) {
+                    $data_row['subcatid'] = explode(',', $data_row['subcatid']);
+                    foreach ($data_row['subcatid'] as $subcatid) {
+                        $items = $global_array_shops_cat[$subcatid];
+                        if ($items['inhome']) {
+                            $xtpl->assign('SUBCAT', $global_array_shops_cat[$subcatid]);
+                            $xtpl->parse('main.loop.subcatloop');
                         }
                     }
-
-                    if ($data_row['num_pro'] > $data_row['num_link']) {
-                        $xtpl->parse('main.viewcat.catalogs.view_next');
-                    }
-                    $xtpl->parse('main.viewcat.catalogs');
                 }
+
+                if ($data_row['num_pro'] > $data_row['num_link']) {
+                    $xtpl->parse('main.loop.view_next');
+                }
+                $xtpl->parse('main.loop');
             }
         }
-        $xtpl->parse('main.viewcat');
     }
 
     $xtpl->parse('main');
@@ -219,8 +241,10 @@ function nv_template_detail($data_content, $data_unit, $data_others, $array_othe
             $xtpl->parse('main.product_weight');
         }
 
+        $xtpl->assign('PRO_FULL_LINK', $data_content['full_link']);
         $xtpl->assign('NUM_VIEW', $data_content['hitstotal']);
         $xtpl->assign('DATE_UP', $lang_module['detail_dateup'] . ' ' . nv_date('d-m-Y h:i:s A', $data_content['publtime']));
+        $xtpl->assign('PRICEVALIDUNTIL', nv_date('Y-m-d', $data_content['publtime']));
         $xtpl->assign('DETAIL', $data_content[NV_LANG_DATA . '_bodytext']);
         $xtpl->assign('LINK_ORDER', $link2 . 'setcart&id=' . $data_content['id']);
         $price = nv_get_price($data_content['id'], $pro_config['money_unit']);
@@ -229,10 +253,33 @@ function nv_template_detail($data_content, $data_unit, $data_others, $array_othe
         $xtpl->assign('PRODUCT_NUMBER', $data_content['product_number']);
         $xtpl->assign('pro_unit', $data_unit['title']);
 
-        if (!empty($data_content['image'])) {
+        if ($data_content['product_number'] < 1) {
+            $xtpl->assign('AVAILABILITY', 'https://schema.org/OutOfStock');
+        } else {
+            $xtpl->assign('AVAILABILITY', 'https://schema.org/InStock');
+        }
+        if (empty($data_content['homeimgalt'])) {
+            $data_content['homeimgalt'] = $data_content[NV_LANG_DATA . '_title'];
+        }
+        $xtpl->assign('DATA', $data_content);
+
+        // Xuất ảnh sản phẩm
+        $num_images = sizeof($data_content['image']);
+        if ($num_images == 1) {
+            // Sản phẩm có 1 ảnh
+            $xtpl->assign('IMAGE', current($data_content['image']));
+            $xtpl->parse('main.oneimage');
+        } elseif ($num_images > 1) {
+            // Gallery ảnh
+            $stt = 0;
             foreach ($data_content['image'] as $image) {
+                $xtpl->assign('IMAGE_STT', $stt++);
                 $xtpl->assign('IMAGE', $image);
                 $xtpl->parse('main.image.loop');
+                if ($stt == 1) {
+                    $xtpl->parse('main.image.loop1.active');
+                }
+                $xtpl->parse('main.image.loop1');
             }
             $xtpl->parse('main.image');
         }
@@ -534,12 +581,12 @@ function print_product($data_content, $data_unit, $page_title)
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('TEMPLATE', $module_info['template']);
     $xtpl->assign('NV_BASE_SITEURL', NV_BASE_SITEURL);
+
     if (!empty($data_content)) {
         $xtpl->assign('proid', $data_content['id']);
         $data_content['money_unit'] = ($data_content['money_unit'] != '') ? $data_content['money_unit'] : 'N/A';
         $data_content[NV_LANG_DATA . '_address'] = ($data_content[NV_LANG_DATA . '_address'] != '') ? $data_content[NV_LANG_DATA . '_address'] : 'N/A';
         $xtpl->assign('SRC_PRO', $data_content['homeimgthumb']);
-        $xtpl->assign('SRC_PRO_LAGE', $data_content['homeimgthumb']);
         $xtpl->assign('TITLE', $data_content[NV_LANG_DATA . '_title']);
         $xtpl->assign('NUM_VIEW', $data_content['hitstotal']);
         $xtpl->assign('DATE_UP', $lang_module['detail_dateup'] . date(' d-m-Y ', $data_content['addtime']) . $lang_module['detail_moment'] . date(" H:i'", $data_content['addtime']));
@@ -558,9 +605,11 @@ function print_product($data_content, $data_unit, $page_title)
         $xtpl->assign('contact', $global_config['site_email']);
         $xtpl->assign('page_title', $page_title);
     }
-    if ($pro_config['active_price'] == '1') {
+
+    if (!empty($pro_config['active_price'])) {
         $xtpl->parse('main.price');
     }
+
     $xtpl->parse('main');
     return $xtpl->text('main');
 }
@@ -1629,6 +1678,7 @@ function nv_template_viewgrid($array_data, $page = '')
 
     $xtpl = new XTemplate('viewgird.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
     $xtpl->assign('LANG', $lang_module);
+    $xtpl->assign('MODULE_NAME', $module_name);
 
     if (!empty($array_data)) {
         $i = 1;
@@ -1755,7 +1805,7 @@ function nv_template_viewgrid($array_data, $page = '')
  */
 function nv_template_viewlist($array_data, $page)
 {
-    global $module_info, $lang_module, $lang_global, $module_name, $module_data, $module_file, $module_upload, $pro_config, $op, $compareid;
+    global $module_info, $lang_module, $global_array_shops_cat, $lang_global, $module_name, $module_data, $module_file, $module_upload, $pro_config, $op, $compareid;
 
     $xtpl = new XTemplate('viewlist.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
     $xtpl->assign('LANG', $lang_module);
@@ -1886,12 +1936,14 @@ function nv_template_viewcat($data_content, $compare_id, $pages, $sort = 0, $vie
     global $module_info, $lang_module, $module_file, $module_upload, $module_name, $pro_config, $array_displays, $array_wishlist_id, $op, $global_array_shops_cat, $global_array_group, $my_head, $page;
 
     $xtpl = new XTemplate('viewcat.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
+    $xtpl->assign('MODULE_NAME', $module_name);
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('ALIAS', $data_content['alias']);
     $xtpl->assign('CATID', $data_content['id']);
     $xtpl->assign('CAT_NAME', $data_content['title']);
     $xtpl->assign('COUNT', $data_content['count']);
 
+    // Hiển thị phần giới thiệu loại sản phẩm
     if ($op != 'group') {
         if (($global_array_shops_cat[$data_content['id']]['viewdescriptionhtml'] and $page == 1) or $global_array_shops_cat[$data_content['id']]['viewdescriptionhtml'] == 2) {
             $xtpl->assign('DESCRIPTIONHTML', $global_array_shops_cat[$data_content['id']]['descriptionhtml']);
@@ -1912,7 +1964,12 @@ function nv_template_viewcat($data_content, $compare_id, $pages, $sort = 0, $vie
         }
     }
 
-    if ($pro_config['show_displays'] == 1) {
+    /*
+     * Hiển thị phần sắp xếp sản phẩm nếu cấu hình bật
+     * - Trên nhóm sản phẩm
+     * - Trên loại sản phẩm khi không xem theo từng loại con
+     */
+    if (!empty($pro_config['show_displays']) and ($op == 'group' or $global_array_shops_cat[$data_content['id']]['viewcat'] != 'view_home_cat')) {
         foreach ($array_displays as $k => $array_displays_i) {
             $se = '';
             $xtpl->assign('value', $array_displays_i);
@@ -1942,7 +1999,9 @@ function nv_template_viewcat($data_content, $compare_id, $pages, $sort = 0, $vie
         $xtpl->parse('main.displays');
     }
 
-    if (function_exists('nv_template_' . $viewtype)) {
+    if ($op != 'group' and $global_array_shops_cat[$data_content['id']]['viewcat'] == 'view_home_cat') {
+        $xtpl->assign('CONTENT', nv_template_main_cat($data_content['data']));
+    } elseif (function_exists('nv_template_' . $viewtype)) {
         $xtpl->assign('CONTENT', call_user_func('nv_template_' . $viewtype, $data_content['data'], $pages));
     }
 

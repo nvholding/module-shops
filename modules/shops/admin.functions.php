@@ -410,7 +410,7 @@ function nv_fix_group_order($parentid = 0, $sort = 0, $lev = 0)
     if ($parentid > 0) {
         $sql = "UPDATE " . $db_config['prefix'] . "_" . $module_data . "_group SET numsubgroup=" . $numsubgroup;
         if ($numsubgroup == 0) {
-            $sql .= ",subgroupid='', viewgroup='viewcat_page_list'";
+            $sql .= ",subgroupid='', viewgroup='viewgrid'";
         } else {
             $sql .= ",subgroupid='" . implode(",", $array_group_order) . "'";
         }
@@ -471,7 +471,7 @@ function shops_show_group_list($parentid = 0)
         while (list ($groupid, $parentid, $title, $description, $weight, $viewgroup, $numsubgroup, $inhome, $indetail, $in_order) = $result->fetch(3)) {
             $array_viewgroup = $array_viewcat_nosub;
             if (!array_key_exists($viewgroup, $array_viewgroup)) {
-                $viewgroup = "viewcat_page_list";
+                $viewgroup = "viewgrid";
                 $stmt = $db->prepare("UPDATE " . $db_config['prefix'] . "_" . $module_data . "_group SET viewgroup= :viewgroup WHERE groupid=" . intval($groupid));
                 $stmt->bindParam(':viewgroup', $viewgroup, PDO::PARAM_STR);
                 $stmt->execute();
@@ -984,9 +984,9 @@ function GetCatidInChild($catid)
  */
 function nv_show_custom_form($is_edit, $form, $array_custom)
 {
-    global $db, $db_config, $lang_module, $lang_global, $module_name, $module_data, $op, $global_array_shops_cat, $global_config, $module_file;
+    global $db, $db_config, $lang_module, $lang_global, $module_name, $module_data, $op, $global_array_shops_cat, $global_config, $module_file, $module_upload;
 
-    $xtpl = new XTemplate('cat_form_' . $form . '.tpl', NV_ROOTDIR . '/' . NV_ASSETS_DIR . '/' . $module_name . '/files_tpl');
+    $xtpl = new XTemplate('cat_form_' . $form . '.tpl', NV_ROOTDIR . '/' . NV_ASSETS_DIR . '/' . $module_upload . '/files_tpl');
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('GLANG', $lang_global);
     $xtpl->assign('NV_BASE_ADMINURL', NV_BASE_ADMINURL);

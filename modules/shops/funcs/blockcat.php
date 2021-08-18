@@ -17,7 +17,8 @@ if (isset($array_op[1])) {
     $page = (isset($array_op[2]) and substr($array_op[2], 0, 5) == 'page-') ? intval(substr($array_op[2], 5)) : 1;
 
     $array_data = array();
-    $stmt = $db->prepare('SELECT bid, ' . NV_LANG_DATA . '_title, ' . NV_LANG_DATA . '_alias, image, ' . NV_LANG_DATA . '_description, ' . NV_LANG_DATA . '_bodytext, ' . NV_LANG_DATA . '_keywords, ' . NV_LANG_DATA . '_tag_title, ' . NV_LANG_DATA . '_tag_description FROM ' . $db_config['prefix'] . '_' . $module_data . '_block_cat ORDER BY weight DESC');
+    $stmt = $db->prepare('SELECT bid, ' . NV_LANG_DATA . '_title, ' . NV_LANG_DATA . '_alias, image, ' . NV_LANG_DATA . '_description, ' . NV_LANG_DATA . '_bodytext, ' . NV_LANG_DATA . '_keywords, ' . NV_LANG_DATA . '_tag_title, ' . NV_LANG_DATA . '_tag_description FROM ' . $db_config['prefix'] . '_' . $module_data . '_block_cat WHERE ' . NV_LANG_DATA . '_alias = :alias');
+    $stmt->bindParam(':alias', $alias, PDO::PARAM_STR);
     $stmt->execute();
 
     list ($bid, $page_title, $alias, $image_group, $description, $bodytext, $key_words, $tag_title, $tag_description) = $stmt->fetch(3);
@@ -47,7 +48,7 @@ if (isset($array_op[1])) {
         $base_url_rewrite = nv_url_rewrite($base_url_rewrite, true);
         $base_url_rewrite = str_replace('&amp;', '&', $base_url_rewrite);
 
-        if ($_SERVER['REQUEST_URI'] != $base_url_rewrite and NV_MAIN_DOMAIN . $_SERVER['REQUEST_URI'] != $base_url_rewrite) {
+        if ($_SERVER['REQUEST_URI'] != $base_url_rewrite and NV_MY_DOMAIN . $_SERVER['REQUEST_URI'] != $base_url_rewrite) {
             nv_redirect_location($base_url_rewrite);
         }
 

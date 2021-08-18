@@ -16,7 +16,10 @@ if ($nv_Request->isset_request('check_quantity', 'post')) {
     $id_pro = $nv_Request->get_int('id_pro', 'post', 0);
     $unit = $nv_Request->get_string('pro_unit', 'post', '');
     $listid = $nv_Request->get_string('listid', 'post');
-    $listid = explode(',', $listid);
+    $listid = array_filter(array_unique(array_map('intval', explode(',', $listid))));
+    if (empty($listid)) {
+        nv_htmlOutput('OK_' . $quantity . '_' . $lang_module['detail_pro_number'] . ': ' . $quantity . ' ' . $unit);
+    }
     asort($listid);
 
     $quantity = $db->query('SELECT quantity FROM ' . $db_config['prefix'] . '_' . $module_data . '_group_quantity WHERE pro_id = ' . $id_pro . ' AND listgroup="' . implode(',', $listid) . '"')->fetchColumn();
@@ -148,7 +151,7 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
     $catid = $data_content['listcatid'];
     $base_url_rewrite = nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name . '&' . NV_OP_VARIABLE . '=' . $global_array_shops_cat[$catid]['alias'] . '/' . $data_content[NV_LANG_DATA . '_alias'] . $global_config['rewrite_exturl'], true);
 
-    if ($_SERVER['REQUEST_URI'] != $base_url_rewrite and !$popup) {
+    if ($_SERVER['REQUEST_URI'] != $base_url_rewrite and NV_MY_DOMAIN . $_SERVER['REQUEST_URI'] != $base_url_rewrite and !$popup) {
         nv_redirect_location($base_url_rewrite);
     }
 
@@ -186,21 +189,17 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
     $data_content['rating_point'] = $rating_total;
     $data_content['rating_value'] = $rating_count > 0 ? round($rating_total / $rating_count) : 0;
 
-    // Xac dinh anh lon
+    // Ảnh chính
     $homeimgfile = $data_content['homeimgfile'];
     if ($data_content['homeimgthumb'] == 1) {
-        // image thumb
         $data_content['homeimgthumb'] = NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $homeimgfile;
         $data_content['homeimgfile'] = NV_BASE_SITEURL . NV_UPLOADS_DIR . '/' . $module_upload . '/' . $homeimgfile;
     } elseif ($data_content['homeimgthumb'] == 2) {
-        // image file
         $data_content['homeimgthumb'] = $data_content['homeimgfile'] = NV_BASE_SITEURL . NV_UPLOADS_DIR . '/' . $module_upload . '/' . $homeimgfile;
     } elseif ($data_content['homeimgthumb'] == 3) {
-        // image url
         $data_content['homeimgthumb'] = $data_content['homeimgfile'] = $homeimgfile;
     } else {
-        // no image
-        $data_content['homeimgthumb'] = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+        $data_content['homeimgthumb'] = $data_content['homeimgfile'] = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
     }
 
     array_push($array_images, array(
@@ -373,6 +372,7 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
 
     $data_content['image'] = $array_images;
     unset($array_images, $data_content['homeimgfile'], $data_content['otherimage']);
+    $data_content['full_link'] = NV_MY_DOMAIN . nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $global_array_shops_cat[$data_content['listcatid']]['alias'] . '/' . $data_content[NV_LANG_DATA . '_alias'] . $global_config['rewrite_exturl'], true);
 
     $contents = nv_template_detail($data_content, $data_unit, $data_others, $array_other_view, $content_comment, $compare_id, $popup, $idtemplates, $array_keyword);
 } else {

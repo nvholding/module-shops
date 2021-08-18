@@ -159,6 +159,14 @@ if (empty($contents)) {
     if ($global_array_shops_cat[$catid]['viewcat'] == 'view_home_cat' and $global_array_shops_cat[$catid]['numsubcat'] > 0) {
         // Hiển thị theo loại sản phẩm
         $data_content = [];
+
+        $data_content['id'] = $catid;
+        $data_content['title'] = $global_array_shops_cat[$catid]['title'];
+        $data_content['image'] = $global_array_shops_cat[$catid]['image'];
+        $data_content['alias'] = $global_array_shops_cat[$catid]['alias'];
+        $data_content['count'] = 0;
+        $data_content['data'] = [];
+
         $array_subcatid = explode(',', $global_array_shops_cat[$catid]['subcatid']);
 
         foreach ($array_subcatid as $catid_i) {
@@ -185,22 +193,15 @@ if (empty($contents)) {
 
             while (list ($id, $listcatid, $publtime, $title, $alias, $hometext, $homeimgalt, $homeimgfile, $homeimgthumb, $product_code, $product_number, $product_price, $money_unit, $showprice, $gift_content, $gift_from, $gift_to, $newday) = $result->fetch(3)) {
                 if ($homeimgthumb == 1) {
-                    //image thumb
-
                     $thumb = NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $homeimgfile;
                 } elseif ($homeimgthumb == 2) {
-                    //image file
-
                     $thumb = NV_BASE_SITEURL . NV_UPLOADS_DIR . '/' . $module_upload . '/' . $homeimgfile;
                 } elseif ($homeimgthumb == 3) {
-                    //image url
-
                     $thumb = $homeimgfile;
                 } else {
-                    //no image
-
                     $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
                 }
+
                 $data_pro[] = array(
                     'id' => $id,
                     'listcatid' => $listcatid,
@@ -224,7 +225,7 @@ if (empty($contents)) {
                 );
             }
 
-            $data_content[] = array(
+            $data_content['data'][] = [
                 'catid' => $catid_i,
                 'subcatid' => $array_info_i['subcatid'],
                 'title' => $array_info_i['title'],
@@ -233,16 +234,21 @@ if (empty($contents)) {
                 'num_pro' => $num_pro,
                 'num_link' => $array_info_i['numlinks'],
                 'image' => $array_info_i['image']
-            );
+            ];
+
+            $data_content['count'] += $num_pro;
         }
 
         if ($page > 1) {
             nv_redirect_location(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name, true);
         }
 
-        $contents = call_user_func('view_home_cat', $data_content, $sorts);
+        $contents = call_user_func('nv_template_viewcat', $data_content, $compare_id, '', $sorts);
     } else {
-        // Hiển thị danh sách sản phẩm
+        /*
+         * Hiển thị danh sách sản phẩm
+         * theo dạng lưới hoặc dạng danh sách
+         */
         if ($global_array_shops_cat[$catid]['numsubcat'] == 0) {
             $where = ' t1.listcatid=' . $catid;
         } else {
@@ -259,7 +265,11 @@ if (empty($contents)) {
         $num_items = $db->query($db->sql())
             ->fetchColumn();
 
-        $db->select('t1.id, t1.listcatid, t1.publtime, t1.' . NV_LANG_DATA . '_title, t1.' . NV_LANG_DATA . '_alias, t1.' . NV_LANG_DATA . '_hometext, t1.homeimgalt, t1.homeimgfile, t1.homeimgthumb, t1.product_code, t1.product_number, t1.product_price, t1.money_unit, t1.discount_id, t1.showprice, t1.' . NV_LANG_DATA . '_gift_content, t1.gift_from, t1.gift_to, t2.newday, t2.image')
+        $db->select('t1.id, t1.listcatid, t1.publtime, t1.' . NV_LANG_DATA . '_title,
+            t1.' . NV_LANG_DATA . '_alias, t1.' . NV_LANG_DATA . '_hometext, t1.homeimgalt, t1.homeimgfile,
+            t1.homeimgthumb, t1.product_code, t1.product_number, t1.product_price, t1.money_unit, t1.discount_id,
+            t1.showprice, t1.' . NV_LANG_DATA . '_gift_content, t1.gift_from,
+            t1.gift_to, t2.newday, t2.image')
             ->join('INNER JOIN ' . $db_config['prefix'] . '_' . $module_data . '_catalogs t2 ON t2.catid = t1.listcatid')
             ->order($orderby)
             ->limit($per_page)

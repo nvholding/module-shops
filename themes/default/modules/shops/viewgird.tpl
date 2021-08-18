@@ -1,9 +1,9 @@
 <!-- BEGIN: main -->
-<div class="viewgrid">
+<div class="row viewgrid shops-viewgrid shops-viewgrid-{MODULE_NAME}">
     <!-- BEGIN: loop -->
     <div class="col-sm-12 col-md-{NUM}">
         <div class="thumbnail">
-            <div style="height: {HEIGHT}px">
+            <div style="height: {HEIGHT}px" class="item-image">
                 <a href="{ROW.link_pro}" title="{ROW.title}"><img src="{ROW.homeimgthumb}" alt="{ROW.title}"
                 <!-- BEGIN: tooltip_js -->data-content='{ROW.hometext}' data-rel="tooltip" data-img="{ROW.homeimgthumb}"<!-- END: tooltip_js -->class="img-thumbnail" style="max-height:{HEIGHT}px;max-width:{WIDTH}px;"></a>
             </div>
@@ -67,7 +67,7 @@
     </div>
     <!-- END: loop -->
     <!-- BEGIN: page -->
-    <div class="text-center">{PAGE}</div>
+    <div class="text-center w-100 gen-page">{PAGE}</div>
     <!-- END: page -->
 </div>
 <!-- BEGIN: tooltip_js -->

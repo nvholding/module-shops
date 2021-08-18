@@ -34,7 +34,7 @@
 				</div>
 				<div class="col-xs-24 col-sm-8">
 					<div class="form-group">
-						<label>{LANG.product_catalogs}</label>
+						<label>{LANG.moneyunit}</label>
 						<select name="typemoney" id="typemoney1" class="form-control">
 							<option value="0">{LANG.moneyunit}</option>
 							<!-- BEGIN: typemoney -->
@@ -54,99 +54,5 @@
 </div>
 <!-- END: form -->
 <!-- BEGIN: main -->
-<div id="products">
-	<!-- BEGIN: items -->
-	<div class="col-xs-12 col-sm-12 col-md-{num}">
-		<div class="thumbnail product-item">
-			<div class="product-img" style="height: {height}px">
-				<a href="{LINK}" title="{TITLE}"><img src="{IMG_SRC}" alt="{TITLE}" data-content='{hometext}' data-rel="tooltip" class="img-thumbnail" style="max-height:{height}px;max-width:{width}px;background-color: #fff;"></a>
-			</div>
-			<div class="info_pro">
-				<!-- BEGIN: newday -->
-				<span class="label label-success newday">{LANG.newday}</span>
-				<!-- END: newday -->
-				<!-- BEGIN: discounts -->
-				<span class="label label-danger">-{PRICE.discount_percent}%</span>
-				<!-- END: discounts -->
-				<!-- BEGIN: point -->
-				<span class="label label-info" title="{point_note}">+{point}</span>
-				<!-- END: point -->
-				<!-- BEGIN: gift -->
-            	<span class="label label-success">+<em class="fa fa-gift fa-lg">&nbsp;</em></span>
-            	<!-- END: gift -->
-			</div>
-			<div class="caption text-center product-info" style="padding: 0px;margin-top: 15px;">
-			    <div class="product-title">
-                <a href="{LINK}" title="{TITLE}">{TITLE0}</a>
-				</div>
-				<!-- BEGIN: adminlink -->
-				<p>
-					{ADMINLINK}
-				</p>
-				<!-- END: adminlink -->
-
-				<!-- BEGIN: price -->
-				<p class="price">
-					<!-- BEGIN: discounts -->
-					<span class="money">{PRICE.sale_format} {PRICE.unit}</span>
-					<span class="discounts_money">{PRICE.price_format} {PRICE.unit}</span>
-					<!-- END: discounts -->
-
-					<!-- BEGIN: no_discounts -->
-					<span class="money">{PRICE.price_format} {PRICE.unit}</span>
-					<!-- END: no_discounts -->
-				</p>
-				<!-- END: price -->
-
-				<!-- BEGIN: contact -->
-				<p class="price">
-					{LANG.detail_pro_price}: <span class="money">{LANG.price_contact}</span>
-				</p>
-				<!-- END: contact -->
-			</div>
-		</div>
-	</div>
-	<!-- END: items -->
-</div>
-<div class="clear">
-	&nbsp;
-</div>
-
-<!-- BEGIN: modal_loaded -->
-<div class="modal fade" id="idmodals" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				<h4 class="modal-title">{LANG.add_product}</h4>
-			</div>
-			<div class="modal-body">
-				<em class="fa fa-spinner fa-spin">&nbsp;</em>
-			</div>
-		</div>
-	</div>
-</div>
-<!-- END: modal_loaded -->
-
-<!-- BEGIN: pages -->
-<div class="text-center">
-	{generate_page}
-</div>
-<!-- END: pages -->
-
-<div class="msgshow" id="msgshow"></div>
-
-<!-- BEGIN: tooltip_js -->
-<script type="text/javascript" data-show="after">
-	$(document).ready(function() {
-		$("[data-rel='tooltip']").tooltip({
-			placement : "bottom",
-			html : true,
-			title : function() {
-				return '<p class="text-justify">' + $(this).data('content') + '</p><div class="clearfix"></div>';
-			}
-		});
-	});
-</script>
-<!-- END: tooltip_js -->
+{CONTENT}
 <!-- END: main -->

@@ -232,7 +232,7 @@ $sql_create_module[] = "CREATE TABLE IF NOT EXISTS " . $db_config['prefix'] . "_
  weight smallint(4) unsigned NOT NULL DEFAULT '0',
  sort mediumint(8) NOT NULL DEFAULT '0',
  lev smallint(4) NOT NULL DEFAULT '0',
- viewgroup varchar(50) NOT NULL DEFAULT 'viewcat_page_new',
+ viewgroup varchar(50) NOT NULL DEFAULT 'viewgrid',
  numsubgroup int(11) NOT NULL DEFAULT '0',
  subgroupid varchar(250) NOT NULL DEFAULT '',
  inhome tinyint(1) unsigned NOT NULL DEFAULT '0',
@@ -338,7 +338,7 @@ $sql_create_module[] = "CREATE TABLE IF NOT EXISTS " . $db_config['prefix'] . "_
  gift_from int(11) unsigned NOT NULL DEFAULT '0',
  gift_to int(11) unsigned NOT NULL DEFAULT '0',
  inhome tinyint(1) unsigned NOT NULL DEFAULT '0',
- allowed_comm tinyint(1) unsigned NOT NULL DEFAULT '0',
+ allowed_comm varchar(250) NOT NULL DEFAULT '',
  allowed_rating tinyint(1) unsigned NOT NULL DEFAULT '0',
  ratingdetail varchar(250) NOT NULL DEFAULT '',
  allowed_send tinyint(1) unsigned NOT NULL DEFAULT '0',
@@ -359,7 +359,7 @@ $sql_create_module[] = "CREATE TABLE IF NOT EXISTS " . $db_config['prefix'] . "_
 $sql_create_module[] = "ALTER TABLE " . $db_config['prefix'] . "_" . $module_data . "_rows ADD " . $lang . "_title VARCHAR( 250 ) NOT NULL DEFAULT '',
  ADD " . $lang . "_alias VARCHAR( 250 ) NOT NULL DEFAULT '',
  ADD " . $lang . "_hometext text NOT NULL,
- ADD " . $lang . "_bodytext mediumtext NOT NULL,
+ ADD " . $lang . "_bodytext mediumtext NULL DEFAULT NULL,
  ADD " . $lang . "_gift_content text NOT NULL,
  ADD " . $lang . "_address text NOT NULL,
  ADD " . $lang . "_tag_title VARCHAR(255) NOT NULL DEFAULT '',
@@ -392,7 +392,7 @@ $sql_create_module[] = "ALTER TABLE " . $db_config['prefix'] . "_" . $module_dat
  ADD " . $lang . "_title VARCHAR( 250 ) NOT NULL DEFAULT '',
  ADD " . $lang . "_alias VARCHAR( 250 ) NOT NULL DEFAULT '',
  ADD " . $lang . "_description VARCHAR( 250 ) NOT NULL DEFAULT '',
- ADD " . $lang . "_bodytext TEXT NOT NULL,
+ ADD " . $lang . "_bodytext TEXT NULL DEFAULT NULL,
  ADD " . $lang . "_keywords text NOT NULL,
  ADD " . $lang . "_tag_title VARCHAR(255) NOT NULL DEFAULT '',
  ADD " . $lang . "_tag_description mediumtext NOT NULL";
@@ -547,7 +547,7 @@ $sql_create_module[] = "CREATE TABLE IF NOT EXISTS " . $db_config['prefix'] . "_
   alias varchar(250) NOT NULL DEFAULT '',
   image varchar(250) DEFAULT '',
   description text,
-  bodytext text NOT NULL,
+  bodytext text NULL DEFAULT NULL,
   keywords varchar(250) DEFAULT '',
   PRIMARY KEY (tid),
   UNIQUE KEY alias (alias)
@@ -862,6 +862,7 @@ $sql_create_module[] = "INSERT INTO " . NV_CONFIG_GLOBALTABLE . " (lang, module,
 $sql_create_module[] = "INSERT INTO " . NV_CONFIG_GLOBALTABLE . " (lang, module, config_name, config_value) VALUES ('" . $lang . "', '" . $module_name . "', 'captcha', '1')";
 $sql_create_module[] = "INSERT INTO " . NV_CONFIG_GLOBALTABLE . " (lang, module, config_name, config_value) VALUES ('" . $lang . "', '" . $module_name . "', 'allowattachcomm', '0')";
 $sql_create_module[] = "INSERT INTO " . NV_CONFIG_GLOBALTABLE . " (lang, module, config_name, config_value) VALUES ('" . $lang . "', '" . $module_name . "', 'alloweditorcomm', '0')";
+$sql_create_module[] = "INSERT INTO " . NV_CONFIG_GLOBALTABLE . " (lang, module, config_name, config_value) VALUES ('" . $lang . "', '" . $module_name . "', 'captcha_area_comm', '0')";
 
 // Unique lang key
 $sql_create_module[] = "ALTER TABLE " . $db_config['prefix'] . "_" . $module_data . "_catalogs ADD UNIQUE (" . $lang . "_alias)";

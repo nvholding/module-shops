@@ -54,7 +54,7 @@ while (list ($bid_i, $adddefault_i, $title_i) = $result->fetch(3)) {
 
 $catid = $nv_Request->get_int('catid', 'get', 0);
 
-$rowcontent = array(
+$rowcontent = [
     'id' => 0,
     'listcatid' => $catid,
     'user_id' => $admin_info['admin_id'],
@@ -104,23 +104,50 @@ $rowcontent = array(
     'gift_to' => 0,
     'tag_title' => '',
     'tag_description' => ''
-);
+];
 
 $page_title = $lang_module['content_add'];
 $groups_list = nv_groups_list();
 $array_keywords_old = [];
 
-$is_copy = $nv_Request->isset_request('copy', 'get');
+$is_copy = (int)$nv_Request->get_bool('copy', 'get,post', false);
 $rowcontent['id'] = $nv_Request->get_int('id', 'get,post', 0);
-
 $group_id_old = [];
-if ($rowcontent['id'] > 0) {
-    $rowcontent['listcatid'] = $db->query("SELECT listcatid FROM " . $db_config['prefix'] . "_" . $module_data . "_rows where id=" . $rowcontent['id'])->fetchColumn();
 
-    // Old group
-    $group_id_old = getGroupID($rowcontent['id']);
+if (!empty($rowcontent['id'])) {
+    $page_title = $lang_module['content_edit'];
 
-    // Old keywords
+    $rowcontent = $db->query("SELECT * FROM " . $db_config['prefix'] . "_" . $module_data . "_rows WHERE id=" . $rowcontent['id'])->fetch();
+    if (empty($rowcontent)) {
+        nv_info_die($lang_global['error_404_title'], $lang_global['error_404_title'], $lang_global['error_404_content']);
+    }
+
+    $rowcontent['title'] = $rowcontent[NV_LANG_DATA . '_title'];
+    $rowcontent['alias'] = $rowcontent[NV_LANG_DATA . '_alias'];
+    $rowcontent['hometext'] = $rowcontent[NV_LANG_DATA . '_hometext'];
+    $rowcontent['bodytext'] = $rowcontent[NV_LANG_DATA . '_bodytext'];
+    $rowcontent['gift_content'] = $rowcontent[NV_LANG_DATA . '_gift_content'];
+    $rowcontent['address'] = $rowcontent[NV_LANG_DATA . '_address'];
+    $rowcontent['tag_title'] = $rowcontent[NV_LANG_DATA . '_tag_title'];
+    $rowcontent['tag_description'] = $rowcontent[NV_LANG_DATA . '_tag_description'];
+    $rowcontent['group_id'] = $group_id_old = getGroupID($rowcontent['id']);
+
+    $id_block_content = [];
+    $sql = 'SELECT bid FROM ' . $db_config['prefix'] . '_' . $module_data . '_block WHERE id=' . $rowcontent['id'];
+    $result = $db->query($sql);
+
+    while (list ($bid_i) = $result->fetch(3)) {
+        $id_block_content[] = $bid_i;
+    }
+
+    if ($is_copy) {
+        $rowcontent['alias'] = '';
+        $rowcontent['product_code'] = '';
+        $rowcontent['publtime'] = NV_CURRENTTIME;
+        $rowcontent['status'] = 0;
+    }
+
+    // Lấy các từ khóa cũ
     $_query = $db->query('SELECT tid, keyword FROM ' . $db_config['prefix'] . '_' . $module_data . '_tags_id_' . NV_LANG_DATA . ' WHERE id=' . $rowcontent['id'] . ' ORDER BY keyword ASC');
     while ($row = $_query->fetch()) {
         $array_keywords_old[$row['tid']] = $row['keyword'];
@@ -128,7 +155,8 @@ if ($rowcontent['id'] > 0) {
     $rowcontent['keywords'] = implode(', ', $array_keywords_old);
     $rowcontent['keywords_old'] = $rowcontent['keywords'];
 
-    // Old files
+    // Lấy các file đính kèm cũ
+    $rowcontent['files'] = $rowcontent['files_old'] = [];
     $result = $db->query("SELECT id_files FROM " . $db_config['prefix'] . "_" . $module_data . "_files_rows WHERE id_rows=" . $rowcontent['id']);
     if ($result->rowCount() > 0) {
         while (list ($id_files) = $result->fetch(3)) {
@@ -149,9 +177,13 @@ if ($rowcontent['id'] > 0) {
             $array_custom_old[] = $row['field_id'];
         }
     }
+
+    $rowcontent_old = $rowcontent;
 }
 
+$is_submit = false;
 if ($nv_Request->get_int('save', 'post') == 1) {
+    $is_submit = true;
     $field_lang = nv_file_table($table_name);
     $id_block_content = array_unique($nv_Request->get_typed_array('bids', 'post', 'int', []));
     $rowcontent['listcatid'] = $nv_Request->get_int('catid', 'post', 0);
@@ -555,10 +587,10 @@ if ($nv_Request->get_int('save', 'post') == 1) {
             list ($flang, $fname) = $field_lang_i;
             if ($is_copy) {
                 if ($fname == 'alias') {
-                    $rowcontent_coppy[$flang . '_' . $fname] = change_alias($rowcontent_coppy[$flang . '_title']);
-                    $rowcontent_coppy[$flang . '_' . $fname] .= '-' . (intval($nb) + 1);
+                    $rowcontent_old[$flang . '_' . $fname] = change_alias($rowcontent_old[$flang . '_title']);
+                    $rowcontent_old[$flang . '_' . $fname] .= '-' . (intval($nb) + 1);
                 }
-                $data_insert[$flang . '_' . $fname] = ($flang == NV_LANG_DATA || $fname == 'title') ? $rowcontent[$fname] : $rowcontent_coppy[$flang . '_' . $fname];
+                $data_insert[$flang . '_' . $fname] = ($flang == NV_LANG_DATA || $fname == 'title') ? $rowcontent[$fname] : $rowcontent_old[$flang . '_' . $fname];
             } else {
                 $data_insert[$flang . '_' . $fname] = $rowcontent[$fname];
             }
@@ -880,38 +912,6 @@ if ($nv_Request->get_int('save', 'post') == 1) {
         'error' => 0,
         'redirect' => NV_BASE_ADMINURL . 'index.php?' . NV_NAME_VARIABLE . '=' . $module_name . '&' . NV_OP_VARIABLE . '=items'
     ));
-} elseif ($rowcontent['id'] > 0) {
-    $files = $rowcontent['files'];
-    $keyword = $rowcontent['keywords'];
-    $rowcontent = $db->query("SELECT * FROM " . $db_config['prefix'] . "_" . $module_data . "_rows where id=" . $rowcontent['id'])->fetch();
-    $rowcontent['title'] = $rowcontent[NV_LANG_DATA . '_title'];
-    $rowcontent['alias'] = $rowcontent[NV_LANG_DATA . '_alias'];
-    $rowcontent['hometext'] = $rowcontent[NV_LANG_DATA . '_hometext'];
-    $rowcontent['bodytext'] = $rowcontent[NV_LANG_DATA . '_bodytext'];
-    $rowcontent['gift_content'] = $rowcontent[NV_LANG_DATA . '_gift_content'];
-    $rowcontent['address'] = $rowcontent[NV_LANG_DATA . '_address'];
-    $rowcontent['tag_title'] = $rowcontent[NV_LANG_DATA . '_tag_title'];
-    $rowcontent['tag_description'] = $rowcontent[NV_LANG_DATA . '_tag_description'];
-    $rowcontent['group_id'] = $group_id_old;
-    $rowcontent['keywords'] = $keyword;
-    $rowcontent['files'] = $files;
-
-    $page_title = $lang_module['content_edit'];
-
-    if ($is_copy) {
-        $rowcontent['alias'] = '';
-        $rowcontent['product_code'] = '';
-        $rowcontent['publtime'] = NV_CURRENTTIME;
-        $rowcontent['status'] = 0;
-    }
-
-    $id_block_content = [];
-    $sql = 'SELECT bid FROM ' . $db_config['prefix'] . '_' . $module_data . '_block WHERE id=' . $rowcontent['id'];
-    $result = $db->query($sql);
-
-    while (list ($bid_i) = $result->fetch(3)) {
-        $id_block_content[] = $bid_i;
-    }
 }
 
 if (!empty($rowcontent['homeimgfile']) and file_exists(NV_UPLOADS_REAL_DIR . '/' . $module_upload . '/' . $rowcontent['homeimgfile'])) {
@@ -968,6 +968,7 @@ $xtpl->assign('NV_OP_VARIABLE', NV_OP_VARIABLE);
 $xtpl->assign('MODULE_NAME', $module_name);
 $xtpl->assign('MODULE_UPLOAD', $module_upload);
 $xtpl->assign('CURRENT', $currentpath);
+$xtpl->assign('IS_COPY', $is_copy);
 
 if ($rowcontent['status'] == 1) {
     $xtpl->parse('main.status');
@@ -1229,9 +1230,12 @@ if ($rowcontent['id'] > 0 and !$is_copy) {
 if (empty($rowcontent['alias'])) {
     $xtpl->parse('main.getalias');
 }
+if (!$is_submit and $is_copy) {
+    $xtpl->parse('main.pre_getalias');
+}
 
 if (!$pro_config['active_warehouse']) {
-    if ($rowcontent['id'] > 0) {
+    if ($rowcontent['id'] > 0 and !$is_copy) {
         $xtpl->parse('main.warehouse.edit');
     } else {
         $xtpl->parse('main.warehouse.add');
@@ -1242,7 +1246,7 @@ if (!$pro_config['active_warehouse']) {
 // Custom fiels
 if ($pro_config['template_active'] and $rowcontent['listcatid'] and !empty($global_array_shops_cat[$rowcontent['listcatid']]['form'])) {
     $form = $global_array_shops_cat[$rowcontent['listcatid']]['form'];
-    if (nv_is_file(NV_BASE_SITEURL . NV_ASSETS_DIR . '/' . $module_name . '/files_tpl/cat_form_' . $form . '.tpl', NV_ASSETS_DIR . '/' . $module_name)) {
+    if (nv_is_file(NV_BASE_SITEURL . NV_ASSETS_DIR . '/' . $module_upload . '/files_tpl/cat_form_' . $form . '.tpl', NV_ASSETS_DIR . '/' . $module_upload)) {
         $datacustom_form = nv_show_custom_form($rowcontent['id'], $form, $custom);
         $xtpl->assign('DATACUSTOM_FORM', $datacustom_form);
     }
