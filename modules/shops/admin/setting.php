@@ -29,9 +29,10 @@ $page_title = $lang_module['setting'];
 
 $savesetting = $nv_Request->get_int('savesetting', 'post', 0);
 $error = "";
+
 // Group custom
 $groups_list = array();
-$result = $db->query('SELECT group_id, alias as title, idsite FROM ' . NV_GROUPS_GLOBALTABLE . ' WHERE group_id NOT IN ( 4, 5, 6 ) AND (idsite = ' . $global_config['idsite'] . ' OR (idsite =0 AND siteus = 1)) ORDER BY idsite, weight');
+$result = $db->query('SELECT group_id, title, idsite FROM ' . NV_GROUPS_GLOBALTABLE . ' WHERE group_id NOT IN ( 4, 5, 6 ) AND (idsite = ' . $global_config['idsite'] . ' OR (idsite =0 AND siteus = 1)) ORDER BY idsite, weight');
 while ($row = $result->fetch()) {
     if ($row['group_id'] < 9) {
         $row['title'] = $lang_global['level' . $row['group_id']];
