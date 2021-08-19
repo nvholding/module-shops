@@ -34,6 +34,7 @@ $error = "";
 $groups_list = array();
 $result = $db->query('SELECT group_id, title, idsite FROM ' . NV_GROUPS_GLOBALTABLE . ' WHERE group_id NOT IN ( 4, 5, 6 ) AND (idsite = ' . $global_config['idsite'] . ' OR (idsite =0 AND siteus = 1)) ORDER BY idsite, weight');
 while ($row = $result->fetch()) {
+	$row['title'] =$db->query('SELECT title FROM ' . NV_GROUPSDETAIL_GLOBALTABLE . ' WHERE group_id = ' . $row['group_id'] . ' AND lang = "' . NV_LANG_DATA . '"' )->fetchColumn();
     if ($row['group_id'] < 9) {
         $row['title'] = $lang_global['level' . $row['group_id']];
     }
