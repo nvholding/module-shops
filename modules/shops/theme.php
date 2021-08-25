@@ -1468,7 +1468,7 @@ function compare($data_pro)
 
         if ($pro_config['active_order'] == '1' and $pro_config['active_order_non_detail'] == '1') {
             if ($data_row['showprice'] == '1' && !empty($data_row['product_price'])) {
-                if ($data_row['product_number'] > 0 or !empty($pro_config['active_order_number'])) {
+                if ($data_row['product_number'] > 0) {
                     // Kiem tra nhom bat buoc chon khi dat hang
                     $listgroupid = GetGroupID($data_row['id']);
                     $group_requie = 0;
@@ -1714,7 +1714,7 @@ function nv_template_viewgrid($array_data, $page = '')
 
             if ($pro_config['active_order'] == '1' and $pro_config['active_order_non_detail'] == '1') {
                 if ($data_row['showprice'] == '1' && !empty($data_row['product_price'])) {
-                    if ($data_row['product_number'] > 0 or !empty($pro_config['active_order_number'])) {
+                    if ($data_row['product_number'] > 0) {
                         // Kiem tra nhom bat buoc chon khi dat hang
                         $listgroupid = GetGroupID($data_row['id']);
                         $group_requie = 0;
@@ -1805,7 +1805,7 @@ function nv_template_viewgrid($array_data, $page = '')
  */
 function nv_template_viewlist($array_data, $page)
 {
-    global $module_info, $lang_module, $lang_global, $module_name, $module_data, $module_file, $module_upload, $pro_config, $op, $compareid;
+    global $module_info, $lang_module, $global_array_shops_cat, $lang_global, $module_name, $module_data, $module_file, $module_upload, $pro_config, $op, $compareid;
 
     $xtpl = new XTemplate('viewlist.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
     $xtpl->assign('LANG', $lang_module);
@@ -1844,7 +1844,7 @@ function nv_template_viewlist($array_data, $page)
 
             if ($pro_config['active_order'] == '1' and $pro_config['active_order_non_detail'] == '1') {
                 if ($data_row['showprice'] == '1' && !empty($data_row['product_price'])) {
-                    if ($data_row['product_number'] > 0 or !empty($pro_config['active_order_number'])) {
+                    if ($data_row['product_number'] > 0) {
                         // Kiem tra nhom bat buoc chon khi dat hang
                         $listgroupid = GetGroupID($data_row['id']);
                         $group_requie = 0;
