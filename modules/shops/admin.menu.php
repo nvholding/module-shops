@@ -76,3 +76,5 @@ if (defined('NV_IS_SPADMIN')) {
     }
 }
 $submenu['setting'] = array( 'title' => $lang_module['setting'], 'submenu' => $menu_setting );
+$menu_seller['seller_management_add'] = $lang_module['seller_add'];
+$submenu['seller_management'] = array( 'title' => $lang_module['seller'], 'submenu' => $menu_seller );

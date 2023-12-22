@@ -720,3 +720,64 @@ $lang_module['ad_block_top'] = 'Block bên trên chuyên mục';
 $lang_module['ad_block_bot'] = 'Block bên dưới chuyên mục';
 
 $lang_module['error_cat_update'] = 'Tồn tại thuộc tính <strong>%s</strong> của loại sản phẩm bắt buộc chọn khi nhập nên không thể thay đổi';
+
+
+
+//Lang for function seller_management
+$lang_module['seller_management'] = 'Quản lý shops';
+$lang_module['seller'] = 'Quản lý shops';
+$lang_module['seller_add'] = 'Thêm shops';
+$lang_module['seller_management_add'] = 'Thêm shops';
+
+$lang_module['company_name'] = 'Tên doanh nghiệp';
+$lang_module['company_code'] = 'Mã doanh nghiệp';
+$lang_module['store_code'] = 'Mã gian hàng';
+$lang_module['address'] = 'Địa chỉ ngắn gọn';
+$lang_module['province_id'] = 'ID Thành phố';
+$lang_module['district_id'] = 'ID Quận Huyện';
+$lang_module['ward_id'] = 'ID Phường Xã';
+$lang_module['tax_code'] = 'Mã số thuế';
+$lang_module['name'] = 'Họ tên người đại diện';
+$lang_module['phone'] = 'Số điện thoại người đại diện';
+$lang_module['email'] = 'Email';
+$lang_module['image_before'] = 'Ảnh mặt trước giấy phép kinh doanh';
+$lang_module['image_after'] = 'Ảnh mặt sau giấy phép kinh doanh';
+$lang_module['acount_name'] = 'Tên chủ thẻ';
+$lang_module['acount_number'] = 'Số tài khoản';
+$lang_module['branch_id'] = 'Chi nhánh';
+$lang_module['store'] = 'Thông tin kho hàng';
+$lang_module['error_required_company_name'] = 'Lỗi: bạn cần nhập dữ liệu cho Tên doanh nghiệp';
+$lang_module['error_required_company_code'] = 'Lỗi: bạn cần nhập dữ liệu cho Mã doanh nghiệp';
+$lang_module['error_required_store_code'] = 'Lỗi: bạn cần nhập dữ liệu cho Mã gian hàng';
+$lang_module['error_required_tax_code'] = 'Lỗi: bạn cần nhập dữ liệu cho Mã số thuế';
+$lang_module['error_required_address'] = 'Lỗi: bạn cần nhập dữ liệu cho Địa chỉ ngắn gọn';
+$lang_module['error_required_province_id'] = 'Lỗi: bạn cần nhập dữ liệu cho ID Thành phố';
+$lang_module['error_required_district_id'] = 'Lỗi: bạn cần nhập dữ liệu cho ID Quận Huyện';
+$lang_module['error_required_ward_id'] = 'Lỗi: bạn cần nhập dữ liệu cho ID Phường Xã';
+$lang_module['error_required_name'] = 'Lỗi: bạn cần nhập dữ liệu cho Họ tên người đại diện';
+$lang_module['error_required_phone'] = 'Lỗi: bạn cần nhập dữ liệu cho Số điện thoại';
+$lang_module['error_required_email'] = 'Lỗi: bạn cần nhập dữ liệu cho Email';
+$lang_module['error_required_image_before'] = 'Lỗi: bạn cần nhập dữ liệu cho Ảnh mặt trước giấy phép kinh doanh';
+$lang_module['error_required_image_after'] = 'Lỗi: bạn cần nhập dữ liệu cho Ảnh mặt sạu giấy phép kinh doanh';
+$lang_module['error_required_acount_name'] = 'Lỗi: bạn cần nhập dữ liệu cho Tên chủ thẻ';
+$lang_module['error_required_acount_number'] = 'Lỗi: bạn cần nhập dữ liệu cho Số tài khoản';
+$lang_module['error_required_branch_id'] = 'Lỗi: bạn cần nhập dữ liệu cho Chi nhánh';
+$lang_module['error_required_store'] = 'Lỗi: bạn cần nhập dữ liệu cho Thông tin kho hàng';
+$lang_module['validate_pass']='Vui lòng nhập mật khẩu có 1 chữ hoa, 1 chữ thường, 1 số, 1 ký tự đặc biệt, và có độ dài tối thiểu 8 ký tự';
+$lang_module['validate_phone']='Số điện thoại không hợp lệ';
+$lang_module['validate_email']='Email không hợp lệ';
+$lang_module['address_seller']='Địa chỉ công ty';
+$lang_module['validate_company_name']='Vui lòng nhập tên doanh nghiệp';
+$lang_module['validate_username']='Vui lòng nhập tên đăng nhập';
+$lang_module['validate_address']='Vụi lòng nhập địa chỉ ngắn gọn';
+$lang_module['validate_name_representative']='Vui lòng nhập tên người đại diện';
+$lang_module['validate_image_before_business_license']='Vui lòng upload ảnh mặt trước giấy phép kinh doanh';
+$lang_module['validate_image_after_business_license']='Vui lòng upload ảnh mặt sau giấy phép kinh doanh';
+$lang_module['validate_acount_name']='Vui lòng nhập tên chủ thẻ';
+$lang_module['validate_acount_number']='Vui lòng nhập số tài khoản';
+$lang_module['validate_province_id']='Vui lòng chọn thành phố';
+$lang_module['validate_district_id']='Vui lòng chọn quận huyện';
+$lang_module['validate_ward_id']='Vui lòng chọn phường xã';
+$lang_module['validate_name_warehouse']='Vui lòng nhập tên kho hàng';
+$lang_module['validate_name_send']='Vui lòng nhập tên người gởi';
+$lang_module['validate_branch_id']='Vui lòng nhập chi nhánh';

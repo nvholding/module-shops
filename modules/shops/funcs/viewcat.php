@@ -7,8 +7,7 @@
  * @License GNU/GPL version 2 or any later version
  * @Createdate 04/18/2017 09:47
  */
-
-if (!defined('NV_IS_MOD_SHOPS')) {
+if (! defined('NV_IS_MOD_SHOPS')) {
     die('Stop!!!');
 }
 
@@ -21,7 +20,7 @@ if ($ajax) {
     $page = $nv_Request->get_int('page', 'get,post', 1);
     $catid = $nv_Request->get_int('catid', 'get,post', 0);
 
-    if (!empty($listgroupid)) {
+    if (! empty($listgroupid)) {
         $array_id_group = array_map('intval', explode(',', $listgroupid));
     }
 }
@@ -61,10 +60,10 @@ foreach ($array_op as $_inurl) {
 }
 
 // Kiểm tra URL duy nhất nếu không ajax, khi ajax không kiểm tra.
-if (!$ajax) {
+if (! $ajax) {
     $base_url_rewrite = str_replace('&amp;', '&', $global_array_shops_cat[$catid]['link']);
     // URL khi xem nhóm sản phẩm
-    if (!empty($array_url_group_alias)) {
+    if (! empty($array_url_group_alias)) {
         asort($array_url_group_alias);
         $base_url_rewrite .= '/' . implode('/', $array_url_group_alias);
     }
@@ -78,12 +77,12 @@ if (!$ajax) {
 }
 
 // Thẻ meta của site
-if (!empty($global_array_shops_cat[$catid]['title_custom'])) {
+if (! empty($global_array_shops_cat[$catid]['title_custom'])) {
     $page_title = $global_array_shops_cat[$catid]['title_custom'];
 } else {
     $page_title = $global_array_shops_cat[$catid]['title'];
 }
-if (!empty($global_array_shops_cat[$catid]['tag_description'])) {
+if (! empty($global_array_shops_cat[$catid]['tag_description'])) {
     $description = $global_array_shops_cat[$catid]['tag_description'];
 } else {
     $description = $global_array_shops_cat[$catid]['description'];
@@ -99,19 +98,27 @@ $sorts = $nv_Request->get_int('sorts', 'post', $sorts_old);
 
 // Dùng session, form để chủ động điều khiển kiểu hiển thị
 $viewtype_old = $nv_Request->get_string('viewtype', 'session', '');
+$viewcustom_old = $nv_Request->get_string('viewcustom', 'session', '');
 $viewtype = $nv_Request->get_string('viewtype', 'post', $viewtype_old);
+$viewcustom = $nv_Request->get_string('viewcustom', 'post', $viewcustom_old);
 
-if (!empty($viewtype)) {
+if (! empty($viewtype)) {
     $global_array_shops_cat[$catid]['viewcat'] = $viewtype;
 }
 
 // Cache lại 5 trang đầu tiên đối với khách?
-if (!defined('NV_IS_MODADMIN') and $page < 5 and !$ajax) {
+if (! defined('NV_IS_MODADMIN') and $page < 5 and ! $ajax) {
     $cache_file = NV_LANG_DATA . '_' . $module_info['template'] . '_' . md5($op . '_' . $catid . '_' . $page . '_' . implode('|', $array_url_group_alias)) . '_' . NV_CACHE_PREFIX . '.cache';
     if (($cache = $nv_Cache->getItem($module_name, $cache_file)) != false) {
         $contents = $cache;
     }
 }
+
+$page_url = $base_url = $global_array_shops_cat[$catid]['link'];
+if ($page > 1) {
+    $page_url .= '/page-' . $page;
+}
+$canonicalUrl = getCanonicalUrl($page_url);
 
 if (empty($contents)) {
     $data_content = [];
@@ -128,7 +135,8 @@ if (empty($contents)) {
 
     // Lọc sản phẩm theo nhóm
     $sql_groups = '';
-    if (!empty($array_id_group)) {
+
+    if (! empty($array_id_group)) {
         $arr_id = [];
         $array_id_group = array_unique($array_id_group);
         foreach ($array_id_group as $id_group) {
@@ -142,7 +150,7 @@ if (empty($contents)) {
             $a = sizeof($listid);
             if ($a > 0) {
                 $arr_sql = [];
-                for ($i = 0; $i < $a; $i++) {
+                for ($i = 0; $i < $a; $i ++) {
                     $arr_sql[] = ' pro_id IN (SELECT pro_id FROM ' . $db_config['prefix'] . '_' . $module_data . '_group_items WHERE group_id=' . $listid[$i] . ')';
                 }
                 $sql_groups .= ' (' . implode(' OR ', $arr_sql) . ')';
@@ -150,7 +158,7 @@ if (empty($contents)) {
             if ($j < sizeof($arr_id)) {
                 $sql_groups .= ' AND ';
             }
-            $j++;
+            $j ++;
         }
 
         $sql_groups = ' AND t1.id IN ( ' . $sql_groups . ' )';
@@ -176,9 +184,9 @@ if (empty($contents)) {
             $array_cat = GetCatidInParent($catid_i);
 
             $db->sqlreset()
-            ->select('COUNT(*)')
-            ->from($db_config['prefix'] . '_' . $module_data . '_rows t1')
-            ->where('t1.listcatid IN (' . implode(',', $array_cat) . ') AND t1.status=1' . $sql_groups);
+                ->select('COUNT(*)')
+                ->from($db_config['prefix'] . '_' . $module_data . '_rows t1')
+                ->where('t1.listcatid IN (' . implode(',', $array_cat) . ') AND t1.status=1' . $sql_groups);
 
             $num_pro = $db->query($db->sql())
                 ->fetchColumn();
@@ -199,7 +207,7 @@ if (empty($contents)) {
                 } elseif ($homeimgthumb == 3) {
                     $thumb = $homeimgfile;
                 } else {
-                    $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+                    $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
                 }
 
                 $data_pro[] = array(
@@ -258,9 +266,9 @@ if (empty($contents)) {
         }
 
         $db->sqlreset()
-        ->select('COUNT(*)')
-        ->from($db_config['prefix'] . '_' . $module_data . '_rows t1')
-        ->where($where . ' AND t1.status =1' . $sql_groups);
+            ->select('COUNT(*)')
+            ->from($db_config['prefix'] . '_' . $module_data . '_rows t1')
+            ->where($where . ' AND t1.status =1' . $sql_groups);
 
         $num_items = $db->query($db->sql())
             ->fetchColumn();
@@ -282,7 +290,7 @@ if (empty($contents)) {
         $base_url = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $op . '&amp;ajax=1&amp;catid=' . $catid . '&amp;listgroupid=' . $listgroupid;
         $pages = nv_generate_page($base_url, $num_items, $per_page, $page, true, true, 'nv_urldecode_ajax', 'category');
 
-        if (empty($array_url_group) and !$ajax) {
+        if (empty($array_url_group) and ! $ajax) {
             $base_url = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $global_array_shops_cat[$catid]['alias'];
             $pages = nv_alias_page($page_title, $base_url, $num_items, $per_page, $page);
         }
@@ -290,11 +298,102 @@ if (empty($contents)) {
         if (sizeof($data_content['data']) < 1 and $page > 1) {
             nv_redirect_location(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name, true);
         }
+		// Dữ liệu tùy biến
+		if ($global_array_shops_cat[$catid]['form'] != '') {
+			$array_forms = explode(',', $global_array_shops_cat[$catid]['form']);
+			$where = [];
+			foreach ($array_forms as $cat_form) {
+				$where[] = "alias=" . $db->quote(preg_replace("/[\_]/", "-", $cat_form));
+			}
+			
+			$cat_templates = $db->query('SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_template WHERE ' . implode(' OR ', $where) . ' ORDER BY weight ASC')->fetchAll();
+			
+			if (!empty($cat_templates)) {
+				foreach ($cat_templates as $cat_form) {
+					$idtemplate = $cat_form['id'];
+					$listfield = [];
+					$array_tmp = [];
+					$result = $db->query('SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_field ORDER BY weight');
+					while ($row = $result->fetch()) {
+						$listtemplate = explode('|', $row['listtemplate']);
+						if (in_array($idtemplate, $listtemplate)) {
+							$idtemplates[] = $idtemplate;
+							$listfield[] = $row['fid'];
+							$array_tmp[$row['field']] = unserialize($row['language']);
+						
+						}
+					}
+					
+					if (!empty($listfield)) {
+						$result = $db->query('SELECT t1.field_value, t2.field, t2.listtemplate, t2.field_choices, t2.sql_choices FROM ' . $db_config['prefix'] . "_" . $module_data . "_field_value_" . NV_LANG_DATA . ' t1
+						INNER JOIN ' . $db_config['prefix'] . '_' . $module_data . '_field t2 WHERE t1.field_id=t2.fid ');
+						
+						
+						
+						
+						$data_content['template'][] = $cat_form;
+						while ($row = $result->fetch()) {
+							
+						
+							// Xếp theo danh sách
+							if (!empty($row['field_choices'])) {
+								$row['field_choices'] = unserialize($row['field_choices']);
+								foreach ($row['field_choices'] as $key => $value) {
+										$data_content['array_custom'][$key] = $value;
+								}
+								
+								
+							} elseif (!empty($row['sql_choices'])) {
+								$row['sql_choices'] = explode('|', $row['sql_choices']);
+								$query = 'SELECT ' . $row['sql_choices'][2] . ', ' . $row['sql_choices'][3] . ' FROM ' . $row['sql_choices'][1];
+								$result_sql = $db->query($query);
+								$weight = 0;
+								while (list ($key, $val) = $result_sql->fetch(3)) {
+									$row['field_choices'][$key] = $val;
+								}
+							}else{
+								$data_content['array_custom'][$row['field']] = $row['field_value'];
+							}
+							
+						}
+						
+						
+					}
+				}
+			}
+		}
+		$cid = GetParentCatFilter($catid);
 
+		/* $arr = array();
+		$arr_groupid = array();
+		$result = $db->query('SELECT t1.groupid FROM ' . $db_config['prefix'] . '_' . $module_data . '_group t1 INNER JOIN ' . $db_config['prefix'] . '_' . $module_data . '_group_cateid t2 ON t1.groupid = t2.groupid WHERE t2.cateid = ' . $cid);
+		while (list ($groupid) = $result->fetch(3)) {
+			if ($global_array_group[$groupid]['parentid'] == 0) {
+				$arr_groupid[$groupid] = GetGroupidInParentGroup($groupid, 0, 1, $cid);
+			} else {
+				$arr[$groupid] = $groupid;
+			}
+		}
+		foreach ($arr_groupid as $key => $value) {
+			$dataarr = array();
+			foreach ($arr as $keyar => $valuearr) {
+				if ($value[$valuearr] == $valuearr)
+					$dataarr[$valuearr] = $valuearr;
+			}
+			if (!empty($dataarr)) {
+				$arr_groupid[$key] = $dataarr;
+				continue;
+			}
+		} 
+
+		
+		$data_content['array_listgroups'] = $arr_groupid;
+		*/
+		$data_content['array_listgroups'] = array();
         $contents = nv_template_viewcat($data_content, $compare_id, $pages, $sorts, $global_array_shops_cat[$catid]['viewcat']);
     }
 
-    if (!defined('NV_IS_MODADMIN') and $contents != '' and $cache_file != '' and !$ajax) {
+    if (! defined('NV_IS_MODADMIN') and $contents != '' and $cache_file != '' and ! $ajax) {
         $nv_Cache->setItem($module_name, $cache_file, $contents);
     }
 }
@@ -303,7 +402,6 @@ if ($page > 1) {
     $page_title .= ' ' . NV_TITLEBAR_DEFIS . ' ' . $lang_global['page'] . ' ' . $page;
     $description .= ' ' . $page;
 }
-
 include NV_ROOTDIR . '/includes/header.php';
 if ($ajax) {
     echo $contents;

@@ -514,7 +514,7 @@ function GetGroupID($pro_id, $group_by_parent = 0)
     global $db, $db_config, $module_data, $global_array_group;
 
     $data = array();
-    $result = $db->query('SELECT group_id FROM ' . $db_config['prefix'] . '_' . $module_data . '_group_items where pro_id=' . $pro_id);
+    $result = $db->query('SELECT group_id FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_group_items where pro_id=' . $pro_id);
     while ($row = $result->fetch()) {
         if ($group_by_parent) {
             $parentid = $global_array_group[$row['group_id']]['parentid'];
@@ -606,4 +606,26 @@ function isAllowedUpdateOrder($status)
         return true;
     }
     return false;
+}
+
+
+function get_info_user_shops_username($username)
+{
+	global $db, $db_config, $module_name;
+	$list = $db->query("SELECT t2.*, t1.userid as userid_shop FROM " . NV_USERS_GLOBALTABLE . " t1 INNER JOIN " . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_name . "_seller_management t2 ON t1.userid = t2.userid where t1.username=" . $db->quote($username))->fetch();
+
+	return $list;
+}
+function get_info_user_shops_idsite($idsite)
+{
+	global $db, $db_config, $module_name;
+	$list = $db->query("SELECT t2.*, t1.userid as userid_shop FROM " . NV_USERS_GLOBALTABLE . " t1 INNER JOIN " . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_name . "_seller_management t2 ON t1.userid = t2.userid where t1.userid=" . $db->quote($idsite))->fetch();
+	return $list;
+}
+
+function get_info_shop($shop_id)
+{
+	global $db, $db_config, $module_name;
+	$list = $db->query("SELECT * FROM " . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_name . "_seller_management where id=" . $shop_id)->fetch();
+	return $list;
 }

@@ -61,37 +61,119 @@ unset($alias_cat_url, $row, $alias_group_url);
 
 $page = 1;
 $per_page = $pro_config['per_page'];
-
-if ($op == 'main') {
-    if (empty($catid)) {
-        if (preg_match('/^page\-([0-9]+)$/', (isset($array_op[0]) ? $array_op[0] : ''), $m)) {
-            $page = (int) $m[1];
-        }
-    } else {
-        if (sizeof($array_op) == 2 and preg_match('/^([a-z0-9\-]+)$/i', $array_op[1]) and !preg_match('/\-\-/', $array_op[1]) and !preg_match('/^page\-([0-9]+)$/', $array_op[1], $m2)) {
-            $op = 'detail';
-            $alias_url = $array_op[1];
-        } else {
-            $op = 'viewcat';
-        }
-
-        $parentid = $catid;
-        while ($parentid > 0) {
-            $array_cat_i = $global_array_shops_cat[$parentid];
-            $array_mod_title[] = [
-                'catid' => $parentid,
-                'title' => $array_cat_i['title'],
-                'link' => $array_cat_i['link']
-            ];
-            $parentid = $array_cat_i['parentid'];
-        }
-        krsort($array_mod_title, SORT_NUMERIC);
-    }
+$alias_detail = isset($array_op[0]) ? $array_op[0] : '';
+$array_page = explode('-', $alias_detail);
+$id = intval(end($array_page));
+//print_r($array_op);die;
+if (!empty($array_op[0])) {
+	$shop = get_info_user_shops_username($array_op[0]);
+	
+	if (!empty($shop)) {
+		$shop_id = $shop['id'];
+		$userid_shop = $shop['userid_shop'];
+		$_SESSION["shop_id"] = $shop_id;
+		$_SESSION["userid_shop"] = $userid_shop;
+	} else {
+		$shop_id = '';
+		$userid_shop = '';
+	}
 }
+
+if (!empty($global_config['idsite'])) {
+	$shop = get_info_user_shops_idsite($global_config['idsite']);
+	if (!empty($shop)) {
+		$shop_id = $shop['id'];
+		$userid_shop = $shop['userid_shop'];
+		$_SESSION["shop_id"] = $shop_id;
+		$_SESSION["userid_shop"] = $userid_shop;
+	} else {
+		$shop_id = '';
+		$userid_shop = '';
+	}
+}
+
+if ($id > 0) {
+	if ($array_page[0] == 'brand') {
+
+		$op = 'view-brand';
+	} else {
+
+		$info_product = get_info_product($id);
+
+		if (($info_product['status'] == 1) and ($array_op[0] == $info_product['alias'] . '-' . $info_product['id'])) {
+			$op = 'detail';
+		} else {
+			echo '<script language="javascript">';
+			echo 'window.location = "' . NV_BASE_SITEURL . '"';
+			echo '</script>';
+		}
+	}
+} else {
+	
+	if (!empty($shop_id)) {
+		if($global_config['idsite'] == 3){
+			$op = 'viewcatshops';
+		}else{
+			if (!empty($global_config['idsite'])) {
+				$op = 'viewcatdomain';
+			}else{
+				$op = 'viewcatshops';
+			}
+		}
+		
+	} else {
+		if ($alias_detail != '') {
+
+			$cat_info = get_info_category_alias($alias_detail);
+			$cat_info1 = get_info_category_shop_alias($alias_detail);
+
+			if (!empty($cat_info)) {
+				$op = 'viewcat';
+			} elseif (!empty($cat_info1)) {
+				$op = 'viewcatofshop';
+			} elseif ($array_op[0] == 'block' and !empty($array_op[1])) {
+				// kiểm tra block sản phẩm
+				$check_block_product = $db->query('SELECT id FROM ' . TABLE . '_block WHERE keyword ="' . $array_op[1] . '"')->fetchColumn();
+				if ($check_block_product) {
+					$op = 'product-shock';
+				}
+			}
+		} else {
+			//Tìm kiếm sản phẩm
+			if ($op == 'main') {
+				if (empty($catid)) {
+					if (preg_match('/^page\-([0-9]+)$/', (isset($array_op[0]) ? $array_op[0] : ''), $m)) {
+						$page = (int) $m[1];
+					}
+				} else {
+					if (sizeof($array_op) == 2 and preg_match('/^([a-z0-9\-]+)$/i', $array_op[1]) and !preg_match('/\-\-/', $array_op[1]) and !preg_match('/^page\-([0-9]+)$/', $array_op[1], $m2)) {
+						$op = 'detail';
+						$alias_url = $array_op[1];
+					} else {
+						$op = 'viewcat';
+					}
+
+					$parentid = $catid;
+					while ($parentid > 0) {
+						$array_cat_i = $global_array_shops_cat[$parentid];
+						$array_mod_title[] = [
+							'catid' => $parentid,
+							'title' => $array_cat_i['title'],
+							'link' => $array_cat_i['link']
+						];
+						$parentid = $array_cat_i['parentid'];
+					}
+					krsort($array_mod_title, SORT_NUMERIC);
+				}
+			}
+		}
+	}
+}
+
 
 // Wishlist
 if (defined('NV_IS_USER') and $pro_config['active_wishlist']) {
-    $listid = $db->query('SELECT listid FROM ' . $db_config['prefix'] . '_' . $module_data . '_wishlist WHERE user_id = ' . $user_info['userid'])->fetchColumn();
+    $listid = $db->query('SELECT listid FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_wishlist WHERE user_id = ' . $user_info['userid'])->fetchColumn();
     if ($listid) {
         $array_wishlist_id = explode(',', $listid);
     }
@@ -123,7 +205,7 @@ function GetDataIn($result, $catid)
         } elseif ($homeimgthumb == 3) {
             $thumb = $homeimgfile;
         } else {
-            $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+            $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
         }
 
         $data[] = [
@@ -189,7 +271,7 @@ function GetDataInGroups($result, $array_g)
         } else {
             // no image
 
-            $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+            $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
         }
 
         $data[] = [
@@ -252,7 +334,7 @@ function GetDataInGroup($result, $groupid)
         } else {
             // no image
 
-            $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+            $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
         }
 
         $data[] = [

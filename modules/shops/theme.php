@@ -26,7 +26,7 @@ function redict_link($lang_view, $lang_back, $nv_redirect)
     $nv_redirect = nv_url_rewrite($nv_redirect, true);
     $contents = "<div class=\"alert alert-info frame\">";
     $contents .= $lang_view . "<br /><br />\n";
-    $contents .= "<img border=\"0\" src=\"" . NV_BASE_SITEURL . NV_ASSETS_DIR . "/images/load_bar.gif\"><br /><br />\n";
+    $contents .= "<img border=\"0\" src=\"" . NV_STATIC_URL . NV_ASSETS_DIR . "/images/load_bar.gif\"><br /><br />\n";
     $contents .= "<a href=\"" . $nv_redirect . "\">" . $lang_back . "</a>";
     $contents .= "</div>";
     $contents .= "<meta http-equiv=\"refresh\" content=\"2;url=" . $nv_redirect . "\" />";
@@ -251,6 +251,7 @@ function nv_template_detail($data_content, $data_unit, $data_others, $array_othe
         $xtpl->assign('PRICE', $price);
         $xtpl->assign('PRODUCT_CODE', $data_content['product_code']);
         $xtpl->assign('PRODUCT_NUMBER', $data_content['product_number']);
+		
         $xtpl->assign('pro_unit', $data_unit['title']);
 
         if ($data_content['product_number'] < 1) {
@@ -523,7 +524,7 @@ function nv_template_detail($data_content, $data_unit, $data_others, $array_othe
     if ($pro_config['active_order'] == '1') {
         if ($data_content['showprice'] == '1') {
             if ($data_content['product_number'] > 0 or $pro_config['active_order_number']) {
-                if (!$pro_config['active_order_number']) {
+                if ($pro_config['active_order_number']) {
                     $xtpl->parse('main.order_number.product_number');
                     $xtpl->parse('main.order_number_limit');
                     $xtpl->parse('main.check_price');
@@ -1468,7 +1469,7 @@ function compare($data_pro)
 
         if ($pro_config['active_order'] == '1' and $pro_config['active_order_non_detail'] == '1') {
             if ($data_row['showprice'] == '1' && !empty($data_row['product_price'])) {
-                if ($data_row['product_number'] > 0) {
+                if ($data_row['product_number'] > 0 or !empty($pro_config['active_order_number'])) {
                     // Kiem tra nhom bat buoc chon khi dat hang
                     $listgroupid = GetGroupID($data_row['id']);
                     $group_requie = 0;
@@ -1593,7 +1594,7 @@ function point_info($data_content, $generate_page)
  */
 function nv_review_content($data_content)
 {
-    global $module_info, $lang_module, $lang_global, $module_name, $module_data, $module_file, $pro_config, $op, $user_info;
+    global $module_info, $lang_module, $lang_global, $module_name, $module_data, $module_file, $pro_config, $op, $user_info, $global_config, $module_config;
 
     $xtpl = new XTemplate('review_content.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
     $xtpl->assign('LANG', $lang_module);
@@ -1609,8 +1610,26 @@ function nv_review_content($data_content)
     }
     $xtpl->assign('RATE_TOTAL', $data_content['rating_total']);
     $xtpl->assign('RATE_VALUE', $data_content['rating_point']);
+    
+    $reCaptchaPass = (!empty($global_config['recaptcha_sitekey']) and !empty($global_config['recaptcha_secretkey']) and ($global_config['recaptcha_ver'] == 2 or $global_config['recaptcha_ver'] == 3));
+
     if ($pro_config['review_captcha']) {
-        $xtpl->parse('main.captcha');
+        if ($module_config[$module_name]['captcha_type'] == 'recaptcha' and $reCaptchaPass and $global_config['recaptcha_ver'] == 3) {
+            $xtpl->parse('main.recaptcha3');
+        } elseif ($module_config[$module_name]['captcha_type'] == 'recaptcha' and $reCaptchaPass and $global_config['recaptcha_ver'] == 2) {
+            $xtpl->assign('RECAPTCHA_ELEMENT', 'recaptcha' . nv_genpass(8));
+            $xtpl->assign('N_CAPTCHA', $lang_global['securitycode1']);
+            $xtpl->parse('main.recaptcha');
+        } elseif ($module_config[$module_name]['captcha_type'] == 'captcha') {
+            $xtpl->assign('N_CAPTCHA', $lang_global['securitycode']);
+            $xtpl->assign('CAPTCHA_REFRESH', $lang_global['captcharefresh']);
+            $xtpl->assign('GFX_WIDTH', NV_GFX_WIDTH);
+            $xtpl->assign('GFX_HEIGHT', NV_GFX_HEIGHT);
+            $xtpl->assign('CAPTCHA_REFR_SRC', NV_STATIC_URL . NV_ASSETS_DIR . '/images/refresh.png');
+            $xtpl->assign('SRC_CAPTCHA', NV_BASE_SITEURL . 'index.php?scaptcha=captcha&t=' . NV_CURRENTTIME);
+            $xtpl->assign('GFX_MAXLENGTH', NV_GFX_NUM);
+            $xtpl->parse('main.captcha');
+        }
     }
 
     $xtpl->parse('main');
@@ -1636,9 +1655,9 @@ function nv_download_content($data_content)
         $login = 0;
         foreach ($data_content['files'] as $files) {
             if (file_exists(NV_ROOTDIR . '/themes/' . $module_info['template'] . '/images/' . $module_file . '/icon_files/' . $files['extension'] . '.png')) {
-                $files['extension_icon'] = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/icon_files/' . $files['extension'] . '.png';
+                $files['extension_icon'] = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/icon_files/' . $files['extension'] . '.png';
             } else {
-                $files['extension_icon'] = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/icon_files/document.png';
+                $files['extension_icon'] = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/icon_files/document.png';
             }
             $xtpl->assign('FILES', $files);
 
@@ -1688,7 +1707,6 @@ function nv_template_viewgrid($array_data, $page = '')
         $xtpl->assign('WIDTH', $pro_config['homewidth']);
 
         foreach ($array_data as $data_row) {
-
             $xtpl->assign('ROW', $data_row);
 
             $newday = $data_row['publtime'] + (86400 * $data_row['newday']);
@@ -1714,7 +1732,7 @@ function nv_template_viewgrid($array_data, $page = '')
 
             if ($pro_config['active_order'] == '1' and $pro_config['active_order_non_detail'] == '1') {
                 if ($data_row['showprice'] == '1' && !empty($data_row['product_price'])) {
-                    if ($data_row['product_number'] > 0) {
+                    if ($data_row['product_number'] > 0 or !empty($pro_config['active_order_number'])) {
                         // Kiem tra nhom bat buoc chon khi dat hang
                         $listgroupid = GetGroupID($data_row['id']);
                         $group_requie = 0;
@@ -1805,7 +1823,7 @@ function nv_template_viewgrid($array_data, $page = '')
  */
 function nv_template_viewlist($array_data, $page)
 {
-    global $module_info, $lang_module, $global_array_shops_cat, $lang_global, $module_name, $module_data, $module_file, $module_upload, $pro_config, $op, $compareid;
+    global $module_info, $lang_module, $lang_global, $module_name, $module_data, $module_file, $module_upload, $pro_config, $op, $compareid;
 
     $xtpl = new XTemplate('viewlist.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
     $xtpl->assign('LANG', $lang_module);
@@ -1817,7 +1835,6 @@ function nv_template_viewlist($array_data, $page)
         $xtpl->assign('WIDTH', $pro_config['homewidth']);
 
         foreach ($array_data as $data_row) {
-
             $xtpl->assign('ROW', $data_row);
 
             $newday = $data_row['publtime'] + (86400 * $data_row['newday']);
@@ -1844,7 +1861,7 @@ function nv_template_viewlist($array_data, $page)
 
             if ($pro_config['active_order'] == '1' and $pro_config['active_order_non_detail'] == '1') {
                 if ($data_row['showprice'] == '1' && !empty($data_row['product_price'])) {
-                    if ($data_row['product_number'] > 0) {
+                    if ($data_row['product_number'] > 0 or !empty($pro_config['active_order_number'])) {
                         // Kiem tra nhom bat buoc chon khi dat hang
                         $listgroupid = GetGroupID($data_row['id']);
                         $group_requie = 0;
@@ -1963,7 +1980,51 @@ function nv_template_viewcat($data_content, $compare_id, $pages, $sort = 0, $vie
             $xtpl->parse('main.image');
         }
     }
-
+	// Hien thi du lieu tuy bien o phan bo loc view cat
+	if ($global_array_shops_cat[$data_content['id']]['form'] != '') {
+		foreach ($data_content['array_custom'] as $key_lang => $lang_data) {
+			$custom_data = array();
+			$custom_data['key'] = $key_lang;
+			$custom_data['value'] = $lang_data;
+			$xtpl->assign('CUSTOM_DATA', $custom_data);
+			$xtpl->parse('main.brands.brand');
+		}
+		
+		$xtpl->parse('main.brands');
+	}
+	// Hien thi subcat o phan bo loc view cat
+	if ($global_array_shops_cat[$data_content['id']]['subcatid'] != '') {
+		$subcats = explode(",",$global_array_shops_cat[$data_content['id']]['subcatid']);
+		foreach ($subcats as $catsubid) {
+			$custom_data = array();
+			$custom_data['key'] = $catsubid;
+			$custom_data['value'] = $global_array_shops_cat[$catsubid]['title'];
+			$xtpl->assign('SUBCAT', $custom_data);
+			$xtpl->parse('main.subcats.cat');
+		}
+		
+		$xtpl->parse('main.subcats');
+	}
+	// Hien thi groups o phan bo loc view cat
+	if ($data_content['array_listgroups'] != '') {
+		foreach ($data_content['array_listgroups'] as $catgroupid => $groups) {
+			$custom_data = array();
+			$custom_data['key'] = $catgroupid;
+			$custom_data['value'] = $global_array_group[$catgroupid]['title'];
+			$xtpl->assign('GROUPS', $custom_data);
+			foreach ($groups as $groupid) {
+				$custom_group = array();
+				$custom_group['key'] = $groupid;
+				$custom_group['value'] = $global_array_group[$groupid]['title'];
+				$xtpl->assign('GROUP', $custom_group);
+				$xtpl->parse('main.groups.group.loop');
+			}
+			
+			$xtpl->parse('main.groups.group');
+		}
+		
+		$xtpl->parse('main.groups');
+	}
     /*
      * Hiển thị phần sắp xếp sản phẩm nếu cấu hình bật
      * - Trên nhóm sản phẩm
@@ -2177,4 +2238,419 @@ function nv_custom_tab_fields($data_content)
 
     $xtpl->parse('main');
     return $xtpl->text('main');
+}
+
+
+function shops_info($array_data, $per_page, $page, $num_items, $cat_info, $base_url, $list_category_parrent, $getbrand_all, $page_check, $info_shop, $list_voucher)
+{
+	global $module_info, $lang_module, $lang_global, $op, $module_name, $module_upload, $db, $user_info;
+
+	if ($page_check == 0) {
+		$xtpl = new XTemplate('viewcatgrid_shop.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_info['module_theme']);
+	} else {
+		$xtpl = new XTemplate('viewcatgrid_ajax.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_info['module_theme']);
+	}
+	$xtpl->assign('LANG', $lang_module);
+	$xtpl->assign('GLANG', $lang_global);
+	$xtpl->assign('TEMPLATE', $module_info['template']);
+	$xtpl->assign('BRAND_CHUOI', $cat_info['brand']);
+	$xtpl->assign('URL', nv_url_rewrite($base_url, true));
+	$xtpl->assign('info_shop', $info_shop);
+
+	$follow['check_follow'] = 0;
+/* 	if ($user_info['userid']) {
+		$follow['check_follow'] = $db->query("SELECT count(*) FROM " . TABLE . "_follow WHERE user_id =" . $user_info['userid'] . " AND shop_id = " . $info_shop['id'])->fetchColumn();
+	} */
+
+	if ($follow['check_follow'] == 0) {
+		$follow['color_follow'] = "btn_ecng";
+		$follow['title_follow'] = "Theo dõi";
+	} else if ($follow['check_follow'] == 1) {
+		$follow['color_follow'] = "btn_ecng_outline";
+		$follow['title_follow'] = "Bỏ theo dõi";
+	} else {
+		$follow['color_follow'] = "btn_ecng";
+		$follow['title_follow'] = "Theo dõi";
+	}
+	$xtpl->assign('FOLLOW', $follow);
+
+	if ($getbrand_all) {
+		foreach ($getbrand_all as $value) {
+			if ($value) {
+				$info_brand = $db->query('SELECT * FROM ' . TABLE . '_brand WHERE id = ' . $value . ' AND status =1')->fetch();
+
+				if (!empty($info_brand['logo'])) {
+					$info_brand['logo'] = NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $info_brand['logo'];
+					$xtpl->assign('BRAND', $info_brand);
+					$xtpl->parse('main.enibal_brand.brand');
+				}
+			}
+		}
+
+		$xtpl->parse('main.enibal_brand');
+	}
+
+	if (!empty($list_category_parrent)) {
+
+		foreach ($list_category_parrent as $value) {
+			$value['alias'] = NV_MY_DOMAIN . '/' . $module_name . '/' . $value['alias'] . '/';
+			$xtpl->assign('CHILD', $value);
+			$xtpl->parse('main.category_check.category_child');
+		}
+
+		$xtpl->parse('main.category_check');
+	}
+
+	$xtpl->assign('count_product', $num_items);
+	if (!count($array_data)) {
+		$xtpl->parse('main.no_product');
+	}
+	$generate_page = nv_generate_page_viewcat($base_url, $num_items, $per_page, $page, 'true', 'false', 'nv_urldecode_ajax', 'ProductContent');
+
+
+	if (!empty($generate_page)) {
+		$xtpl->assign('NV_GENERATE_PAGE', $generate_page);
+		$xtpl->parse('main.generate_page');
+	}
+
+	if (!empty($array_data)) {
+		foreach ($array_data as $value_product) {
+			$value_product['number_view'] = number_format($value_product['number_view']);
+			$value_product['number_order'] = number_format($value_product['number_order']);
+			$value_product['check_wishlist'] = 2;
+			if ($user_info['userid']) {
+				$value_product['check_wishlist'] = $db->query("SELECT count(*) FROM " . TABLE . "_wishlist WHERE userid =" . $user_info['userid'] . " AND product_id = " . $value_product['id'])->fetchColumn();
+			}
+
+			$value_product['like_number'] = $db->query("SELECT count(*) FROM " . TABLE . "_wishlist WHERE product_id = " . $value_product['id'])->fetchColumn();
+			if ($value_product['check_wishlist'] == 0) {
+				$value_product['color_wishlist'] = "white_wishlist";
+			} else if ($value_product['check_wishlist'] == 1) {
+				$value_product['color_wishlist'] = "red_wishlist";
+			} else {
+				$value_product['color_wishlist'] = "white_wishlist";
+			}
+
+			$value_product['alias'] = nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $value_product['alias'] . '-' . $value_product['id'], true);
+
+			if (!empty($value_product['image']) and is_file(NV_UPLOADS_REAL_DIR . '/' . $module_upload . '/' . $value_product['image'])) {
+				$value_product['image']  = NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $value_product['image'];
+			} else {
+				$server = 'banhang.' . $_SERVER["SERVER_NAME"];
+				$value_product['image']  = 'https://' . $server . NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $value_product['image'];
+			}
+			$value_product['price'] = $value_product['price'] ? $value_product['price'] : $value_product['price_special'];
+			$value_product['price_format'] = number_format($value_product['price']) . 'đ';
+			$xtpl->assign('LOOP_PRODUCT', $value_product);
+
+			if ($value_product['price_special'] and $value_product['price'] < $value_product['price_special']) {
+				$price_special = number_format($value_product['price_special']) . 'đ';
+				$xtpl->assign('price_special', $price_special);
+				$xtpl->parse('main.product.loop.price_special');
+			}
+			//print_r($value_product);
+			if ($value_product['free_ship']) {
+				$xtpl->parse('main.product.loop.free_ship');
+			}
+			$xtpl->parse('main.product.loop');
+		}
+		$xtpl->parse('main.product');
+	}
+	//voucher
+
+	if (!empty($list_voucher)) {
+		foreach ($list_voucher as $voucher) {
+
+			if ($voucher['list_product'] == 0) {
+				$xtpl->assign('VOUCHER_APPLY', 'Voucher áp dụng cho tất cả sản phẩm của Shop');
+			} else {
+				$xtpl->assign('VOUCHER_APPLY', 'Voucher áp dụng cho một số sản phẩm');
+			}
+			if ($voucher['type_discount']) {
+				$voucher['discount_price'] = $voucher['discount_price'] . '%';
+			} else {
+				$voucher['discount_price'] = number_format($voucher['discount_price']) . 'đ';
+			}
+			$voucher['time_to'] = date("d-m-Y", $voucher['time_to']);
+
+			$xtpl->assign('VOUCHER', $voucher);
+
+			if ($voucher['maximum_discount']) {
+				$voucher['maximum_discount'] = number_format($voucher['maximum_discount']) . 'đ';
+				$xtpl->assign('maximum_discount', $voucher['maximum_discount']);
+				$xtpl->parse('main.voucher.voucher_loop.maximum_discount');
+			}
+			if ($user_info['userid']) {
+				//check voucher khach da luu
+				$check_voucher_customer = $db->query('SELECT id FROM ' . TABLE . '_voucher_wallet_shop WHERE voucherid = ' . $voucher['id'] . ' AND userid = ' . $user_info['userid'])->fetchColumn();
+				if ($check_voucher_customer) {
+					$xtpl->parse('main.voucher.voucher_loop.saved');
+				} else {
+					if (!$voucher['usage_limit_quantity']) {
+						$xtpl->parse('main.voucher.voucher_loop.not_voucher');
+					} else {
+						$xtpl->parse('main.voucher.voucher_loop.not_saved');
+					}
+				}
+			} else {
+				$xtpl->parse('main.voucher.voucher_loop.not_saved');
+			}
+			$xtpl->parse('main.voucher.voucher_loop');
+		}
+		$xtpl->parse('main.voucher');
+	}
+	$xtpl->parse('main');
+	return $xtpl->text('main');
+}
+function shops_domain_info($array_data, $per_page, $page, $num_items, $cat_info, $base_url, $list_category_parrent, $getbrand_all, $page_check, $info_shop, $list_voucher)
+{
+	global $module_info, $lang_module, $lang_global, $op, $module_name, $module_upload, $db, $user_info;
+
+	if ($page_check == 0) {
+		$xtpl = new XTemplate('viewcatgrid_domainshop.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_info['module_theme']);
+	} else {
+		$xtpl = new XTemplate('viewcatgrid_domainajax.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_info['module_theme']);
+	}
+	$xtpl->assign('LANG', $lang_module);
+	$xtpl->assign('GLANG', $lang_global);
+	$xtpl->assign('TEMPLATE', $module_info['template']);
+	$xtpl->assign('BRAND_CHUOI', $cat_info['brand']);
+	$xtpl->assign('URL', nv_url_rewrite($base_url, true));
+	$xtpl->assign('info_shop', $info_shop);
+
+	$follow['check_follow'] = 0;
+/* 	if ($user_info['userid']) {
+		$follow['check_follow'] = $db->query("SELECT count(*) FROM " . TABLE . "_follow WHERE user_id =" . $user_info['userid'] . " AND shop_id = " . $info_shop['id'])->fetchColumn();
+	} */
+
+	if ($follow['check_follow'] == 0) {
+		$follow['color_follow'] = "btn_ecng";
+		$follow['title_follow'] = "Theo dõi";
+	} else if ($follow['check_follow'] == 1) {
+		$follow['color_follow'] = "btn_ecng_outline";
+		$follow['title_follow'] = "Bỏ theo dõi";
+	} else {
+		$follow['color_follow'] = "btn_ecng";
+		$follow['title_follow'] = "Theo dõi";
+	}
+	$xtpl->assign('FOLLOW', $follow);
+
+	if ($getbrand_all) {
+		foreach ($getbrand_all as $value) {
+			if ($value) {
+				$info_brand = $db->query('SELECT * FROM ' . TABLE . '_brand WHERE id = ' . $value . ' AND status =1')->fetch();
+
+				if (!empty($info_brand['logo'])) {
+					$info_brand['logo'] = NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $info_brand['logo'];
+					$xtpl->assign('BRAND', $info_brand);
+					$xtpl->parse('main.enibal_brand.brand');
+				}
+			}
+		}
+
+		$xtpl->parse('main.enibal_brand');
+	}
+
+	if (!empty($list_category_parrent)) {
+
+		foreach ($list_category_parrent as $value) {
+			$value['alias'] = NV_MY_DOMAIN . '/' . $module_name . '/' . $value['alias'] . '/';
+			$xtpl->assign('CHILD', $value);
+			$xtpl->parse('main.category_check.category_child');
+		}
+
+		$xtpl->parse('main.category_check');
+	}
+
+	$xtpl->assign('count_product', $num_items);
+	if (!count($array_data)) {
+		$xtpl->parse('main.no_product');
+	}
+	$generate_page = nv_generate_page_viewcat($base_url, $num_items, $per_page, $page, 'true', 'false', 'nv_urldecode_ajax', 'ProductContent');
+
+
+	if (!empty($generate_page)) {
+		$xtpl->assign('NV_GENERATE_PAGE', $generate_page);
+		$xtpl->parse('main.generate_page');
+	}
+
+	if (!empty($array_data)) {
+		foreach ($array_data as $value_product) {
+			$value_product['number_view'] = number_format($value_product['number_view']);
+			$value_product['number_order'] = number_format($value_product['number_order']);
+			$value_product['check_wishlist'] = 2;
+			if ($user_info['userid']) {
+				$value_product['check_wishlist'] = $db->query("SELECT count(*) FROM " . TABLE . "_wishlist WHERE userid =" . $user_info['userid'] . " AND product_id = " . $value_product['id'])->fetchColumn();
+			}
+
+			$value_product['like_number'] = $db->query("SELECT count(*) FROM " . TABLE . "_wishlist WHERE product_id = " . $value_product['id'])->fetchColumn();
+			if ($value_product['check_wishlist'] == 0) {
+				$value_product['color_wishlist'] = "white_wishlist";
+			} else if ($value_product['check_wishlist'] == 1) {
+				$value_product['color_wishlist'] = "red_wishlist";
+			} else {
+				$value_product['color_wishlist'] = "white_wishlist";
+			}
+
+			$value_product['alias'] = nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $value_product['alias'] . '-' . $value_product['id'], true);
+
+			if (!empty($value_product['image']) and is_file(NV_UPLOADS_REAL_DIR . '/' . $module_upload . '/' . $value_product['image'])) {
+				$value_product['image']  = NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $value_product['image'];
+			} else {
+				$server = 'banhang.' . $_SERVER["SERVER_NAME"];
+				$value_product['image']  = 'https://' . $server . NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $value_product['image'];
+			}
+			$value_product['price'] = $value_product['price'] ? $value_product['price'] : $value_product['price_special'];
+			$value_product['price_format'] = number_format($value_product['price']) . 'đ';
+			$xtpl->assign('LOOP_PRODUCT', $value_product);
+
+			if ($value_product['price_special'] and $value_product['price'] < $value_product['price_special']) {
+				$price_special = number_format($value_product['price_special']) . 'đ';
+				$xtpl->assign('price_special', $price_special);
+				$xtpl->parse('main.product.loop.price_special');
+			}
+			//print_r($value_product);
+			if ($value_product['free_ship']) {
+				$xtpl->parse('main.product.loop.free_ship');
+			}
+			$xtpl->parse('main.product.loop');
+		}
+		$xtpl->parse('main.product');
+	}
+	//voucher
+
+	if (!empty($list_voucher)) {
+		foreach ($list_voucher as $voucher) {
+
+			if ($voucher['list_product'] == 0) {
+				$xtpl->assign('VOUCHER_APPLY', 'Voucher áp dụng cho tất cả sản phẩm của Shop');
+			} else {
+				$xtpl->assign('VOUCHER_APPLY', 'Voucher áp dụng cho một số sản phẩm');
+			}
+			if ($voucher['type_discount']) {
+				$voucher['discount_price'] = $voucher['discount_price'] . '%';
+			} else {
+				$voucher['discount_price'] = number_format($voucher['discount_price']) . 'đ';
+			}
+			$voucher['time_to'] = date("d-m-Y", $voucher['time_to']);
+
+			$xtpl->assign('VOUCHER', $voucher);
+
+			if ($voucher['maximum_discount']) {
+				$voucher['maximum_discount'] = number_format($voucher['maximum_discount']) . 'đ';
+				$xtpl->assign('maximum_discount', $voucher['maximum_discount']);
+				$xtpl->parse('main.voucher.voucher_loop.maximum_discount');
+			}
+			if ($user_info['userid']) {
+				//check voucher khach da luu
+				$check_voucher_customer = $db->query('SELECT id FROM ' . TABLE . '_voucher_wallet_shop WHERE voucherid = ' . $voucher['id'] . ' AND userid = ' . $user_info['userid'])->fetchColumn();
+				if ($check_voucher_customer) {
+					$xtpl->parse('main.voucher.voucher_loop.saved');
+				} else {
+					if (!$voucher['usage_limit_quantity']) {
+						$xtpl->parse('main.voucher.voucher_loop.not_voucher');
+					} else {
+						$xtpl->parse('main.voucher.voucher_loop.not_saved');
+					}
+				}
+			} else {
+				$xtpl->parse('main.voucher.voucher_loop.not_saved');
+			}
+			$xtpl->parse('main.voucher.voucher_loop');
+		}
+		$xtpl->parse('main.voucher');
+	}
+	$xtpl->parse('main');
+	return $xtpl->text('main');
+}
+
+//phantrangajax//
+function nv_generate_page_viewcat($base_url, $num_items, $per_page, $on_page, $add_prevnext_text = true, $onclick = false, $js_func_name = 'nv_urldecode_ajax', $containerid = 'generate_page', $full_theme = true)
+{
+	global $lang_global;
+	// Round up total page
+	$total_pages = ceil($num_items / $per_page);
+	if ($total_pages < 2) {
+
+		return '';
+	}
+
+	if (!is_array($base_url)) {
+		$amp = preg_match('/\?/', $base_url) ? '&amp;' : '?';
+		$amp .= 'page=';
+	} else {
+		$amp = $base_url['amp'];
+		$base_url = $base_url['link'];
+	}
+
+	$page_string = '';
+
+	if ($total_pages > 10) {
+		$init_page_max = ($total_pages > 3) ? 3 : $total_pages;
+
+		for ($i = 1; $i <= $init_page_max; ++$i) {
+			$href = ($i > 1) ? $base_url . $amp . $i : $base_url;
+			$href = !$onclick ? "href=\"" . $href . "\"" : "href=\"javascript:void(0)\" onclick=\"" . $js_func_name . "('" . rawurlencode(nv_unhtmlspecialchars($href)) . "','" . $containerid . "')\"";
+			$page_string .= '<li' . ($i == $on_page ? ' class="active"' : '') . '><a' . ($i == $on_page ? ' href="#"' : ' ' . $href) . '>' . $i . '</a></li>';
+		}
+
+		if ($total_pages > 3) {
+			if ($on_page > 1 and $on_page < $total_pages) {
+				if ($on_page > 5) {
+					$page_string .= '<li class="disabled"><span>...</span></li>';
+				}
+
+				$init_page_min = ($on_page > 4) ? $on_page : 5;
+				$init_page_max = ($on_page < $total_pages - 4) ? $on_page : $total_pages - 4;
+
+				for ($i = $init_page_min - 1; $i < $init_page_max + 2; ++$i) {
+					$href = ($i > 1) ? $base_url . $amp . $i : $base_url;
+					$href = !$onclick ? "href=\"" . $href . "\"" : "href=\"javascript:void(0)\" onclick=\"" . $js_func_name . "('" . rawurlencode(nv_unhtmlspecialchars($href)) . "','" . $containerid . "')\"";
+					$page_string .= '<li' . ($i == $on_page ? ' class="active"' : '') . '><a' . ($i == $on_page ? ' href="#"' : ' ' . $href) . '>' . $i . '</a></li>';
+				}
+
+				if ($on_page < $total_pages - 4) {
+					$page_string .= '<li class="disabled"><span>...</span></li>';
+				}
+			} else {
+				$page_string .= '<li class="disabled"><span>...</span></li>';
+			}
+
+			for ($i = $total_pages - 2; $i < $total_pages + 1; ++$i) {
+				$href = ($i > 1) ? $base_url . $amp . $i : $base_url;
+				$href = !$onclick ? "href=\"" . $href . "\"" : "href=\"javascript:void(0)\" onclick=\"" . $js_func_name . "('" . rawurlencode(nv_unhtmlspecialchars($href)) . "','" . $containerid . "')\"";
+				$page_string .= '<li' . ($i == $on_page ? ' class="active"' : '') . '><a' . ($i == $on_page ? ' href="#"' : ' ' . $href) . '>' . $i . '</a></li>';
+			}
+		}
+	} else {
+		for ($i = 1; $i < $total_pages + 1; ++$i) {
+			$href = ($i > 1) ? $base_url . $amp . $i : $base_url . '&page=1';
+			$href = !$onclick ? "href=\"" . $href . "\"" : "href=\"javascript:void(0)\" onclick=\"" . $js_func_name . "('" . rawurlencode(nv_unhtmlspecialchars($href)) . "','" . $containerid . "')\"";
+			$page_string .= '<li' . ($i == $on_page ? ' class="active"' : '') . '><a' . ($i == $on_page ? ' href="#"' : ' ' . $href) . '>' . $i . '</a></li>';
+		}
+	}
+
+	if ($add_prevnext_text) {
+		if ($on_page > 1) {
+			$href = ($on_page > 2) ? $base_url . $amp . ($on_page - 1) : $base_url . '&page=1';
+			$href = !$onclick ? "href=\"" . $href . "\"" : "href=\"javascript:void(0)\" onclick=\"" . $js_func_name . "('" . rawurlencode(nv_unhtmlspecialchars($href)) . "','" . $containerid . "')\"";
+			$page_string = "<li><a " . $href . " title=\"" . $lang_global['pageprev'] . "\">&laquo;</a></li>" . $page_string;
+		} else {
+			$page_string = '<li class="disabled"><a href="#">&laquo;</a></li>' . $page_string;
+		}
+
+		if ($on_page < $total_pages) {
+			$href = ($on_page) ? $base_url . $amp . ($on_page + 1) : $base_url . '&page=1';
+			$href = !$onclick ? "href=\"" . $href . "\"" : "href=\"javascript:void(0)\" onclick=\"" . $js_func_name . "('" . rawurlencode(nv_unhtmlspecialchars($href)) . "','" . $containerid . "')\"";
+			$page_string .= '<li><a ' . $href . ' title="' . $lang_global['pagenext'] . '">&raquo;</a></li>';
+		} else {
+			$page_string .= '<li class="disabled"><a href="#">&raquo;</a></li>';
+		}
+	}
+
+	if ($full_theme !== true) {
+		return $page_string;
+	}
+
+	return '<ul class="pagination">' . $page_string . '</ul>';
 }

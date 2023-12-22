@@ -72,6 +72,8 @@ $allow_func = array(
     'warehouse',
     'warehouse_logs',
     'download',
+    'seller_management',
+	'seller_management_add',
     'updateprice'
 );
 
@@ -1054,10 +1056,10 @@ function nv_show_custom_form($is_edit, $form, $array_custom)
                     foreach ($row['field_choices'] as $key => $value) {
                         $xtpl->assign('OPTION', array(
                             'key' => $key,
-                            'selected' => ($key == $array_custom[$row['field']]) ? ' selected="selected"' : '',
+                            'selected' => ($key == $array_custom[$row['fid']]) ? ' selected="selected"' : '',
                             'title' => $value
                         ));
-                        $xtpl->parse('main.select_' . $row['field']);
+                        $xtpl->parse('main.select_' . $row['fid']);
                     }
                 } elseif ($row['field_type'] == 'radio' or $row['field_type'] == 'checkbox') {
                     $number = 0;
@@ -1292,7 +1294,7 @@ function nv_create_form_file($array_template_id)
             $content_2 .= "\t	changeMonth : true,\n";
             $content_2 .= "\t	changeYear : true,\n";
             $content_2 .= "\t	showOtherMonths : true,\n";
-            $content_2 .= "\t	buttonImage : nv_base_siteurl + \"assets/images/calendar.gif\",\n";
+            $content_2 .= "\t	buttonImage : " . NV_STATIC_URL . " + \"assets/images/calendar.gif\",\n";
             $content_2 .= "\t	buttonImageOnly : true\n";
             $content_2 .= "\t});\n";
             $content_2 .= "});\n";

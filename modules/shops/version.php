@@ -13,11 +13,11 @@ if (!defined('NV_ADMIN') or !defined('NV_MAINFILE')) {
 
 $module_version = array(
     'name' => 'Shops', // Tieu de module
-    'modfuncs' => 'main,viewcat,detail,search,cart,order,payment,complete,history,group,search_result,compare,wishlist,tag,point,shippingajax,download, blockcat,ajax',
+    'modfuncs' => 'main,viewcat,detail,search,cart,order,payment,complete,history,group,search_result,compare,wishlist,tag,point,shippingajax,download, blockcat,ajax,viewcatshops,viewcatdomain,viewcatofshop,product-shock',
     'is_sysmod' => 0, // 1:0 => Co phai la module he thong hay khong
     'virtual' => 1, // 1:0 => Co cho phep ao hao module hay khong
-    'version' => '4.3.00', // Module Shops 4 Release Candidate 1
-    'date' => 'Tue, 18 April 2017 00:50:00 GMT', // Ngay phat hanh phien ban
+    'version' => '4.5.02', // Module Shops 4 Release Candidate 1
+    'date' => 'Saturday, September 24, 2022 15:00:00 GMT+07:00', // Ngay phat hanh phien ban
     'author' => 'VINADES <contact@vinades.vn>', // Tac gia
     'note' => '', // Ghi chu
     'uploads_dir' => array(

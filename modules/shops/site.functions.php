@@ -13,15 +13,15 @@ if (!defined('NV_MAINFILE')) {
 }
 
 // Loại sản phẩm
-$sql = 'SELECT catid, parentid, lev, ' . NV_LANG_DATA . '_title AS title, ' . NV_LANG_DATA . '_title_custom AS title_custom, ' . NV_LANG_DATA . '_alias AS alias, viewcat, numsubcat, subcatid, newday, typeprice, form, group_price, viewdescriptionhtml, numlinks, ' . NV_LANG_DATA . '_description AS description, ' . NV_LANG_DATA . '_descriptionhtml AS descriptionhtml, inhome, ' . NV_LANG_DATA . '_keywords AS keywords, ' . NV_LANG_DATA . '_tag_description AS tag_description, groups_view, cat_allow_point, cat_number_point, cat_number_product, image FROM ' . $db_config['prefix'] . '_' . $module_data . '_catalogs ORDER BY sort ASC';
+$sql = 'SELECT catid, parentid, lev, ' . NV_LANG_DATA . '_title AS title, ' . NV_LANG_DATA . '_title_custom AS title_custom, ' . NV_LANG_DATA . '_alias AS alias, viewcat, numsubcat, subcatid, newday, typeprice, form, group_price, viewdescriptionhtml, numlinks, ' . NV_LANG_DATA . '_description AS description, ' . NV_LANG_DATA . '_descriptionhtml AS descriptionhtml, inhome, ' . NV_LANG_DATA . '_keywords AS keywords, ' . NV_LANG_DATA . '_tag_description AS tag_description, groups_view, cat_allow_point, cat_number_point, cat_number_product, image FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_catalogs ORDER BY sort ASC';
 $global_array_shops_cat = $nv_Cache->db($sql, 'catid', $module_name);
 
 // Nhóm sản phẩm
-$sql = 'SELECT groupid, parentid, lev, ' . NV_LANG_DATA . '_title AS title, ' . NV_LANG_DATA . '_alias AS alias, viewgroup, numsubgroup, subgroupid, ' . NV_LANG_DATA . '_description AS description, inhome, indetail, in_order, ' . NV_LANG_DATA . '_keywords AS keywords, numpro, image, is_require FROM ' . $db_config['prefix'] . '_' . $module_data . '_group ORDER BY sort ASC';
+$sql = 'SELECT groupid, parentid, lev, ' . NV_LANG_DATA . '_title AS title, ' . NV_LANG_DATA . '_alias AS alias, viewgroup, numsubgroup, subgroupid, ' . NV_LANG_DATA . '_description AS description, inhome, indetail, in_order, ' . NV_LANG_DATA . '_keywords AS keywords, numpro, image, is_require FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_group ORDER BY sort ASC';
 $global_array_group = $nv_Cache->db($sql, 'groupid', $module_name);
 
 // Lay ty gia ngoai te
-$sql = 'SELECT code, currency, symbol, exchange, round, number_format FROM ' . $db_config['prefix'] . '_' . $module_data . '_money_' . NV_LANG_DATA;
+$sql = 'SELECT code, currency, symbol, exchange, round, number_format FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_money_' . NV_LANG_DATA;
 $cache_file = NV_LANG_DATA . '_' . md5($sql) . '_' . NV_CACHE_PREFIX . '.cache';
 if (($cache = $nv_Cache->getItem($module_name, $cache_file)) != false) {
     $money_config = unserialize($cache);
@@ -47,7 +47,7 @@ if (($cache = $nv_Cache->getItem($module_name, $cache_file)) != false) {
 }
 
 // Lay don vi khoi luong
-$sql = 'SELECT code, title, exchange, round FROM ' . $db_config['prefix'] . '_' . $module_data . '_weight_' . NV_LANG_DATA;
+$sql = 'SELECT code, title, exchange, round FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_weight_' . NV_LANG_DATA;
 
 $cache_file = NV_LANG_DATA . '_' . md5($sql) . '_' . NV_CACHE_PREFIX . '.cache';
 if (($cache = $nv_Cache->getItem($module_name, $cache_file)) != false) {
@@ -72,19 +72,19 @@ if (($cache = $nv_Cache->getItem($module_name, $cache_file)) != false) {
 }
 
 // Lay dia diem
-$sql = 'SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_location ORDER BY sort ASC';
+$sql = 'SELECT * FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_location ORDER BY sort ASC';
 $array_location = $nv_Cache->db($sql, 'id', $module_name);
 
 // Lay nha van chuyen
-$sql = 'SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_carrier WHERE status = 1 ORDER BY weight ASC';
+$sql = 'SELECT * FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_carrier WHERE status = 1 ORDER BY weight ASC';
 $array_carrier = $nv_Cache->db($sql, 'id', $module_name);
 
 // Lay cua hang
-$sql = 'SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_shops WHERE status = 1 ORDER BY weight ASC';
+$sql = 'SELECT * FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_shops WHERE status = 1 ORDER BY weight ASC';
 $array_shops = $nv_Cache->db($sql, 'id', $module_name);
 
 // Lay Giam Gia
-$sql = 'SELECT did, title, begin_time, end_time, config FROM ' . $db_config['prefix'] . '_' . $module_data . '_discounts';
+$sql = 'SELECT did, title, begin_time, end_time, config FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_discounts';
 $cache_file = NV_LANG_DATA . '_' . md5($sql) . '_' . NV_CACHE_PREFIX . '.cache';
 if (($cache = $nv_Cache->getItem($module_name, $cache_file)) != false) {
     $discounts_config = unserialize($cache);
@@ -124,7 +124,7 @@ function nv_get_price($pro_id, $currency_convert, $number = 1, $per_pro = false,
     $discount = 0;
 
     $module_data = !empty($module) ? $site_mods[$module]['module_data'] : $module_data;
-    $product = $db->query('SELECT listcatid, product_price, money_unit, price_config, saleprice, discount_id FROM ' . $db_config['prefix'] . '_' . $module_data . '_rows WHERE id = ' . $pro_id)->fetch();
+    $product = $db->query('SELECT listcatid, product_price, money_unit, price_config, saleprice, discount_id FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_rows WHERE id = ' . $pro_id)->fetch();
     $price = $product['product_price'];
 
     if (!$per_pro) {
@@ -133,7 +133,7 @@ function nv_get_price($pro_id, $currency_convert, $number = 1, $per_pro = false,
 
     $r = $money_config[$product['money_unit']]['round'];
     $decimals = nv_get_decimals($currency_convert);
-
+	//print_r($currency_convert);
     if ($r > 1) {
         $price = round($price / $r) * $r;
     } else {
@@ -172,16 +172,24 @@ function nv_get_price($pro_id, $currency_convert, $number = 1, $per_pro = false,
     }elseif ($pro_config['saleprice_active'] && $global_array_shops_cat[$product['listcatid']]['typeprice'] == 0 && !empty($product['saleprice'])) {
         $discount = $product['product_price'] - $product['saleprice'];
         $discount_percent = ($discount * 100) / $product['product_price'];
+        if (!$per_pro) {
+            $discount = $discount * $number;
+        }
     }
 
     $price = nv_currency_conversion($price, $product['money_unit'], $currency_convert);
 
     $return['price'] = $price; // Giá sản phẩm chưa format
     $return['price_format'] = nv_number_format($price, $decimals); // Giá sản phẩm đã format
-
+	if ($r > 1) {
+        $discount = round($discount / $r) * $r;
+    } else {
+        $discount = round($discount, $decimals);
+    }
     $return['discount'] = $discount; // Số tiền giảm giá sản phẩm chưa format
     $return['discount_format'] = nv_number_format($discount, $decimals); // Số tiền giảm giá sản phẩm đã format
     $return['discount_percent'] = $discount_unit == '%' ? $discount_percent : nv_number_format($discount_percent, $decimals); // Giảm giá theo phần trăm
+    $return['discount_percents'] = nv_number_format($discount_percent, $decimals); // Giảm giá theo phần trăm
     $return['discount_unit'] = $discount_unit; // Đơn vị giảm giá
 
     $return['sale'] = $price - $discount; // Giá bán thực tế của sản phẩm
@@ -240,6 +248,7 @@ function nv_get_decimals($currency_convert)
     global $money_config;
 
     $r = $money_config[$currency_convert]['round'];
+	//print_r($r);
     $decimals = 0;
 
     if ($r <= 1) {

@@ -386,13 +386,7 @@ if ($nv_Request->get_int('save', 'post') == 1) {
             'input' => 'idtitle',
             'msg' => $lang_module['error_title']
         ));
-    } elseif ($error_product_code) {
-        nv_jsonOutput(array(
-            'error' => 1,
-            'input' => 'product_code',
-            'msg' => $lang_module['error_product_code']
-        ));
-    } elseif (empty($rowcontent['listcatid'])) {
+    }  elseif (empty($rowcontent['listcatid'])) {
         nv_jsonOutput(array(
             'error' => 1,
             'input' => 'catid',
@@ -645,7 +639,7 @@ if ($nv_Request->get_int('save', 'post') == 1) {
                 }
             }
 
-            // Cap nhat ma san pham
+           /*  // Cap nhat ma san pham
             $auto_product_code = '';
             if (!empty($pro_config['format_code_id']) and empty($rowcontent['product_code'])) {
                 $i = 1;
@@ -661,7 +655,7 @@ if ($nv_Request->get_int('save', 'post') == 1) {
                 $stmt = $db->prepare('UPDATE ' . $db_config['prefix'] . '_' . $module_data . '_rows SET product_code= :product_code WHERE id=' . $rowcontent['id']);
                 $stmt->bindParam(':product_code', $auto_product_code, PDO::PARAM_STR);
                 $stmt->execute();
-            }
+            } */
 
             // Add file download
             if ($pro_config['download_active']) {
@@ -864,8 +858,7 @@ if ($nv_Request->get_int('save', 'post') == 1) {
                     $tid = $db->insert_id("INSERT INTO " . $db_config['prefix'] . "_" . $module_data . "_tags_" . NV_LANG_DATA . " (
                         numpro, alias, description, bodytext, image, keywords
                     ) VALUES (
-                        1, :alias, '', '', '', :keyword)", "tid", $array_insert
-                    );
+                        1, :alias, '', '', '', :keyword)", "tid", $array_insert);
                 } else {
                     if ($alias != $alias_i) {
                         if (!empty($keywords_i)) {

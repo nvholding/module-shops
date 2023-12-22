@@ -16,27 +16,41 @@ $page_title = $module_info['custom_title'];
 $key_words = $module_info['keywords'];
 
 $nv_Request->get_int('sorts', 'session', 0);
+$nv_Request->get_int('listcatids', 'session', 0);
 $sorts = $nv_Request->get_int('sort', 'post', 0);
 $sorts_old = $nv_Request->get_int('sorts', 'session', $pro_config['sortdefault']);
 $sorts = $nv_Request->get_int('sorts', 'post', $sorts_old);
+$ajax = $nv_Request->isset_request('ajax', 'get,post');
+$listcatid_ajax = $nv_Request->get_string('listcatid', 'post', '');
 
+
+$array_id_cat = [];
+if ($ajax) {
+	$nv_Request->set_Session('listcatids', $listcatid_ajax, NV_LIVE_SESSION_TIME);
+$nv_Cache->delMod($module_name);
+    if (! empty($listcatid_ajax)) {
+        $array_id_cat = array_map('intval', explode(',', $listcatid_ajax));
+    }
+	
+}
+$listcatid_ajax_old = $nv_Request->get_string('listcatids', 'session', 0);
+$listcatid_ajax = $nv_Request->get_string('listcatids', 'post', $listcatid_ajax_old);
+//print_r($listcatid_ajax_old);
 $compare_id = $nv_Request->get_string($module_data . '_compare_id', 'session', '');
 $compare_id = unserialize($compare_id);
 
 $contents = '';
 $cache_file = '';
 
-$base_url = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name;
-$base_url_internal = str_replace('&amp;', '&', $base_url);
-$base_url_rewrite = nv_url_rewrite($base_url_internal, true);
-$page_url_rewrite = ($page > 1) ? nv_url_rewrite($base_url_internal . '/page-' . $page, true) : $base_url_rewrite;
-$request_uri = $_SERVER['REQUEST_URI'];
-if (!($home or $request_uri == $base_url_rewrite or $request_uri == $page_url_rewrite or NV_MAIN_DOMAIN . $request_uri == $base_url_rewrite or NV_MAIN_DOMAIN . $request_uri == $page_url_rewrite)) {
-    $redirect = '<meta http-equiv="Refresh" content="3;URL=' . $base_url_rewrite . '" />';
-    nv_info_die($lang_global['error_404_title'], $lang_global['error_404_title'], $lang_global['error_404_content'] . $redirect, 404);
-}
+//$page = 1;
+$page_url = $base_url = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name;
 
-if (!defined('NV_IS_MODADMIN') and $page < 5) {
+if ($page > 1 and $pro_config['home_data'] == 'all') {
+    $page_url .= '&amp;' . NV_OP_VARIABLE . '=page-' . $page;
+}
+$canonicalUrl = getCanonicalUrl($page_url);
+
+if (!defined('NV_IS_MODADMIN') and $page < 0) {
     $cache_file = NV_LANG_DATA . '_' . $module_info['template'] . '_' . $op . '_' . $page . '_' . NV_CACHE_PREFIX . '.cache';
     if (($cache = $nv_Cache->getItem($module_name, $cache_file)) != false) {
         $contents = $cache;
@@ -54,15 +68,28 @@ if (empty($contents)) {
     } else {
         $orderby = ' t1.product_price DESC, t1.id DESC ';
     }
+	 $sql_cat='';
+	if (!empty($listcatid_ajax_old)) {
+        $arr_id = [];
+        $array_id_cat = array_unique($array_id_cat);
+        foreach ($array_id_cat as $id_cat) {
+            $cat = $global_array_shops_cat[$id_cat];
+            $arr_id[$cat['parentid']][] = $id_cat;
+        }
 
+        
+
+        $sql_cat = ' AND t1.listcatid IN ( ' . $listcatid_ajax . ' )';
+    }
     if ($pro_config['home_data'] == 'all') {
         $db->sqlreset()
             ->select('COUNT(*)')
-            ->from($db_config['prefix'] . '_' . $module_data . '_rows t1')
-            ->where('t1.inhome=1 AND t1.status =1 ');
-
+            ->from($db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_rows t1')
+            ->where('t1.inhome=1 AND t1.status =1 ' . $sql_cat);
         $num_items = $db->query($db->sql())
             ->fetchColumn();
+        // Không cho tùy ý đánh số page + xác định trang trước, trang sau
+        betweenURLs($page, ceil($num_items / $per_page), $base_url, '&amp;' . NV_OP_VARIABLE . '=page-', $prevPage, $nextPage);
 
         $db->select('id, listcatid, publtime, ' . NV_LANG_DATA . '_title, ' . NV_LANG_DATA . '_alias, ' . NV_LANG_DATA . '_hometext, homeimgalt, homeimgfile, homeimgthumb, product_code, product_number, product_price, money_unit, showprice,' . NV_LANG_DATA . '_gift_content, gift_from, gift_to')
             ->order($orderby)
@@ -87,7 +114,7 @@ if (empty($contents)) {
             } else {
                 //no image
 
-                $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+                $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
             }
 
             $data_content[] = array(
@@ -159,7 +186,7 @@ if (empty($contents)) {
                     } else {
                         //no image
 
-                        $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+                        $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
                     }
 
                     $data_pro[] = array(
@@ -240,7 +267,7 @@ if (empty($contents)) {
                     } elseif ($homeimgthumb == 3) {
                         $thumb = $homeimgfile;
                     } else {
-                        $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+                        $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
                     }
 
                     $data_pro[] = array(
@@ -300,5 +327,9 @@ if ($page > 1) {
 }
 
 include NV_ROOTDIR . '/includes/header.php';
-echo nv_site_theme($contents);
+if ($ajax) {
+    echo $contents;
+} else {
+    echo nv_site_theme($contents);
+}
 include NV_ROOTDIR . '/includes/footer.php';

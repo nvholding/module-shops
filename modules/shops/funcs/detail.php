@@ -23,7 +23,7 @@ if ($nv_Request->isset_request('check_quantity', 'post')) {
     asort($listid);
 
     $quantity = $db->query('SELECT quantity FROM ' . $db_config['prefix'] . '_' . $module_data . '_group_quantity WHERE pro_id = ' . $id_pro . ' AND listgroup="' . implode(',', $listid) . '"')->fetchColumn();
-    if (empty($quantity)) {
+    if (empty($quantity) && !empty($pro_config['active_warehouse']) ) {
         $sum = 0;
         $count = 0;
         $listgroupid = GetGroupID($id_pro, 1);
@@ -54,6 +54,21 @@ if ($nv_Request->isset_request('check_quantity', 'post')) {
             die('NO_0_' . $lang_module['product_empty']);
         } else {
             die('NO_0_' . $lang_module['detail_pro_number'] . ': ' . $sum . ' ' . $unit);
+        }
+    } elseif (empty($quantity) && empty($pro_config['active_warehouse']) ) {
+        $sum = 0;
+        $count = 0;
+        
+
+        $result = $db->query('SELECT product_number FROM ' . $db_config['prefix'] . '_' . $module_data . '_rows WHERE id = ' . $id_pro);
+        while (list ($product_number) = $result->fetch(3)) {
+                $sum += $product_number;
+        }
+
+        if ($sum == 0 or $count == sizeof($listid)) {
+            die('NO_0_' . $count);
+        } else {
+            die('OK_' . $sum . '_' . $lang_module['detail_pro_number'] . ': ' . $sum . ' ' . $unit);
         }
     } else {
         die('OK_' . $quantity . '_' . $lang_module['detail_pro_number'] . ': ' . $quantity . ' ' . $unit);
@@ -100,25 +115,45 @@ if ($global_array_shops_cat[$data_content['listcatid']]['form'] != '') {
                 if (in_array($idtemplate, $listtemplate)) {
                     $idtemplates[] = $idtemplate;
                     $listfield[] = $row['fid'];
-                    $array_tmp[$row['field']] = unserialize($row['language']);
+					$array_tmp[$row['field']] = unserialize($row['language']);
+				
                 }
             }
 
             if (!empty($listfield)) {
-                $result = $db->query('SELECT t1.field_value, t2.field, t2.listtemplate FROM ' . $db_config['prefix'] . "_" . $module_data . "_field_value_" . NV_LANG_DATA . ' t1
+                $result = $db->query('SELECT t1.field_value, t2.field, t2.listtemplate, t2.field_choices, t2.sql_choices FROM ' . $db_config['prefix'] . "_" . $module_data . "_field_value_" . NV_LANG_DATA . ' t1
                 INNER JOIN ' . $db_config['prefix'] . '_' . $module_data . '_field t2 WHERE t1.field_id=t2.fid AND t1.rows_id=' . $id);
                 $data_content['template'][] = $cat_form;
                 while ($row = $result->fetch()) {
+					
                     // Xếp theo danh sách
-                    $data_content['array_custom'][$row['field']] = $row['field_value'];
-
+					if (!empty($row['field_choices'])) {
+						$row['field_choices'] = unserialize($row['field_choices']);
+						foreach ($row['field_choices'] as $key => $value) {
+							if($key == $row['field_value']){
+								$data_content['array_custom'][$row['field']] = $value;
+							}
+						}
+						
+						
+					} elseif (!empty($row['sql_choices'])) {
+						$row['sql_choices'] = explode('|', $row['sql_choices']);
+						$query = 'SELECT ' . $row['sql_choices'][2] . ', ' . $row['sql_choices'][3] . ' FROM ' . $row['sql_choices'][1];
+						$result_sql = $db->query($query);
+						$weight = 0;
+						while (list ($key, $val) = $result_sql->fetch(3)) {
+							$row['field_choices'][$key] = $val;
+						}
+					}else{
+						$data_content['array_custom'][$row['field']] = $row['field_value'];
+					}
                     // Xếp theo nhóm
                     $row['listtemplate'] = explode(',', $row['listtemplate']);
                     foreach ($row['listtemplate'] as $_tid) {
                         $data_content['array_custom_template'][$_tid][$row['field']] = $row['field_value'];
                     }
                 }
-
+				
                 if (!empty($array_tmp)) {
                     foreach ($array_tmp as $f_key => $field) {
                         foreach ($field as $key_lang => $lang_data) {
@@ -149,11 +184,12 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
     }
 
     $catid = $data_content['listcatid'];
-    $base_url_rewrite = nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name . '&' . NV_OP_VARIABLE . '=' . $global_array_shops_cat[$catid]['alias'] . '/' . $data_content[NV_LANG_DATA . '_alias'] . $global_config['rewrite_exturl'], true);
-
-    if ($_SERVER['REQUEST_URI'] != $base_url_rewrite and NV_MY_DOMAIN . $_SERVER['REQUEST_URI'] != $base_url_rewrite and !$popup) {
-        nv_redirect_location($base_url_rewrite);
+    $page_url = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name . '&' . NV_OP_VARIABLE . '=' . $global_array_shops_cat[$catid]['alias'] . '/' . $data_content[NV_LANG_DATA . '_alias'] . $global_config['rewrite_exturl'];
+    $page = 1;
+    if ($page > 1) {
+        $page_url .= '/page-' . $page;
     }
+    $canonicalUrl = getCanonicalUrl($page_url);
 
     // Lay don vi san pham
     $sql = $db->query('SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_units WHERE id = ' . $data_content['product_unit']);
@@ -199,7 +235,7 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
     } elseif ($data_content['homeimgthumb'] == 3) {
         $data_content['homeimgthumb'] = $data_content['homeimgfile'] = $homeimgfile;
     } else {
-        $data_content['homeimgthumb'] = $data_content['homeimgfile'] = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+        $data_content['homeimgthumb'] = $data_content['homeimgfile'] = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
     }
 
     array_push($array_images, array(
@@ -242,7 +278,7 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
             $thumb = $homeimgfile;
         } else {
             // no image
-            $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+            $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
         }
 
         $data_others[] = array(
@@ -299,7 +335,7 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
                     $thumb = $homeimgfile;
                 } else {
                     // no image
-                    $thumb = NV_BASE_SITEURL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
+                    $thumb = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
                 }
 
                 $array_other_view[] = array(

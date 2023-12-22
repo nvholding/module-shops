@@ -124,7 +124,7 @@ if (!nv_function_exists('nv_global_product_center')) {
             } else {
                 $block_css = 'default';
             }
-            $my_head .= '<link rel="stylesheet" href="' . NV_BASE_SITEURL . 'themes/' . $block_css . '/css/' . $mod_file . '.css' . '" type="text/css" />';
+            $my_head .= '<link rel="stylesheet" href="' . NV_STATIC_URL . 'themes/' . $block_css . '/css/' . $mod_file . '.css' . '" type="text/css" />';
 
             // Language
             if (file_exists(NV_ROOTDIR . '/modules/' . $mod_file . '/language/' . NV_LANG_DATA . '.php')) {
@@ -156,7 +156,7 @@ if (!nv_function_exists('nv_global_product_center')) {
             $pro_config = $module_config[$module];
 
             // Lay ty gia ngoai te
-            $sql = 'SELECT code, currency, symbol, exchange, round, number_format FROM ' . $db_config['prefix'] . '_' . $mod_data . '_money_' . NV_LANG_DATA;
+            $sql = 'SELECT code, currency, symbol, exchange, round, symbol, number_format FROM ' . $db_config['prefix'] . '_' . $mod_data . '_money_' . NV_LANG_DATA;
             $cache_file = NV_LANG_DATA . '_' . md5($sql) . '_' . NV_CACHE_PREFIX . '.cache';
             if (($cache = $nv_Cache->getItem($module, $cache_file)) != false) {
                 $money_config = unserialize($cache);
@@ -169,6 +169,7 @@ if (!nv_function_exists('nv_global_product_center')) {
                         'currency' => $row['currency'],
                         'exchange' => $row['exchange'],
                         'round' => $row['round'],
+                        'symbol' => $row['symbol'],
                         'number_format' => $row['number_format'],
                         'decimals' => $row['round'] > 1 ? $row['round'] : strlen($row['round']) - 2,
                         'is_config' => ($row['code'] == $pro_config['money_unit']) ? 1 : 0
@@ -185,6 +186,7 @@ if (!nv_function_exists('nv_global_product_center')) {
         $xtpl->assign('THEME_TEM', NV_BASE_SITEURL . 'themes/' . $block_theme);
         $xtpl->assign('NUMVIEW', $num_view);
         $xtpl->assign('MODULE_FILE', $mod_file);
+		$xtpl->assign('TITLE_BLOCK', $block_config['title']);
 
         if ($pro_config['sortdefault'] == 0) {
             $orderby = 't1.id DESC';
@@ -221,7 +223,7 @@ if (!nv_function_exists('nv_global_product_center')) {
             } else {
                 //no image
 
-                $src_img = NV_BASE_SITEURL . 'themes/' . $block_theme . '/images/shops/no-image.jpg';
+                $src_img = NV_STATIC_URL . 'themes/' . $block_theme . '/images/shops/no-image.jpg';
             }
 
             $xtpl->assign('LINK', $link);
@@ -233,9 +235,11 @@ if (!nv_function_exists('nv_global_product_center')) {
             if ($pro_config['active_price'] == '1') {
                 if ($row['showprice'] == '1') {
                     $price = nv_get_price_tmp($module, $mod_data, $mod_file, $row['id']);
+					
                     $xtpl->assign('PRICE', $price);
                     if ($price['discount_percent'] > 0) {
                         $xtpl->parse('main.items.price.discounts');
+                        $xtpl->parse('main.items.discounts');
                     } else {
                         $xtpl->parse('main.items.price.no_discounts');
                     }
