@@ -63,7 +63,13 @@ if ($order_id > 0 and $checkss == md5($order_id . $global_config['sitekey'] . se
             $db->query("DELETE FROM " . $db_config['prefix'] . "_" . $module_data . "_transaction WHERE order_id=" . $order_id);
             $contents = "OK_" . $order_id;
         }
-    }
+    }elseif(empty($list_order_i)){
+		$exec = $db->exec("DELETE FROM " . $db_config['prefix'] . "_" . $module_data . "_orders WHERE order_id=" . $order_id . " AND transaction_status < 1");
+        if ($exec) {
+            $db->query("DELETE FROM " . $db_config['prefix'] . "_" . $module_data . "_transaction WHERE order_id=" . $order_id);
+            $contents = "OK_" . $order_id;
+        }
+	}
 } elseif ($nv_Request->isset_request('listall', 'post,get')) {
     $listall = $nv_Request->get_string('listall', 'post,get');
     $array_id = explode(',', $listall);

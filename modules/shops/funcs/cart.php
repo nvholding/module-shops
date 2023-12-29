@@ -65,7 +65,6 @@ if ($page > 1) {
     $page_url .= '&amp;page-' . $page;
 }
 $canonicalUrl = getCanonicalUrl($page_url);
-
 // Sửa đơn hàng
 if (isset($_SESSION[$module_data . '_order_info']) and !empty($_SESSION[$module_data . '_order_info'])) {
     $order_info = $_SESSION[$module_data . '_order_info'];
@@ -145,13 +144,13 @@ if (!empty($_SESSION[$module_data . '_cart'])) {
         $array = explode('_', $pro_id);
         if (isset($array[1]) and (empty($array[1]) or preg_match('/^[0-9\,]+$/', $array[1]))) {
             $array[0] = intval($array[0]);
-            if (empty($array[1]) || !empty($pro_config['active_order_number'])) {
-                // Sản phẩm không có nhóm hoặc ứng dụng đã được cấu hình đăng ký không giới hạn số lượng
+            if (empty($array[1])) {
+                // Sản phẩm không có nhóm
                 $sql = "SELECT t1.id, t1.listcatid, t1.publtime, t1." . NV_LANG_DATA . "_title, t1." . NV_LANG_DATA . "_alias, t1." . NV_LANG_DATA . "_hometext,
                 t1.homeimgalt, t1.homeimgfile, t1.homeimgthumb, t1.product_number, t1.product_price, t2." . NV_LANG_DATA . "_title, t1.money_unit
                 FROM " . $db_config['prefix'] . "_" . $module_data . "_rows AS t1, " . $db_config['prefix'] . "_" . $module_data . "_units AS t2
                 WHERE t1.product_unit = t2.id AND t1.id IN ('" . $array[0] . "') AND t1.status =1";
-            } else {
+            } elseif(!empty($pro_config['active_warehouse'])) {
                 // Sản phẩm có theo nhóm
                 $sql = "SELECT t1.id, t1.listcatid, t1.publtime, t1." . NV_LANG_DATA . "_title, t1." . NV_LANG_DATA . "_alias, t1." . NV_LANG_DATA . "_hometext,
                 t1.homeimgalt, t1.homeimgfile, t1.homeimgthumb, t1.product_number, t1.product_price, t2." . NV_LANG_DATA . "_title, t1.money_unit
@@ -159,6 +158,13 @@ if (!empty($_SESSION[$module_data . '_cart'])) {
                 " . $db_config['prefix'] . "_" . $module_data . "_units AS t2,
                 " . $db_config['prefix'] . "_" . $module_data . "_group_quantity t3
                 WHERE t1.product_unit = t2.id AND t1.id = t3.pro_id AND  t3.listgroup=" . $db->quote($array[1]) . " AND t1.id IN ('" . $array[0] . "') AND t1.status =1";
+            }else {
+                // Sản phẩm có theo nhóm nhưng không có kho
+                $sql = "SELECT t1.id, t1.listcatid, t1.publtime, t1." . NV_LANG_DATA . "_title, t1." . NV_LANG_DATA . "_alias, t1." . NV_LANG_DATA . "_hometext,
+                t1.homeimgalt, t1.homeimgfile, t1.homeimgthumb, t1.product_number, t1.product_price, t2." . NV_LANG_DATA . "_title, t1.money_unit
+                FROM " . $db_config['prefix'] . "_" . $module_data . "_rows AS t1,
+                " . $db_config['prefix'] . "_" . $module_data . "_units AS t2
+                WHERE t1.product_unit = t2.id AND t1.id IN ('" . $array[0] . "') AND t1.status =1";
             }
             $result = $db->query($sql);
 

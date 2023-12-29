@@ -72,6 +72,8 @@ $allow_func = array(
     'warehouse',
     'warehouse_logs',
     'download',
+    'seller_management',
+	'seller_management_add',
     'updateprice'
 );
 
@@ -257,8 +259,6 @@ function shops_show_cat_list($parentid = 0)
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('GLANG', $lang_global);
     $xtpl->assign('NV_BASE_ADMINURL', NV_BASE_ADMINURL);
-    $xtpl->assign('NV_LANG_VARIABLE', NV_LANG_VARIABLE);
-    $xtpl->assign('NV_LANG_DATA', NV_LANG_DATA);
     $xtpl->assign('NV_NAME_VARIABLE', NV_NAME_VARIABLE);
     $xtpl->assign('NV_OP_VARIABLE', NV_OP_VARIABLE);
     $xtpl->assign('MODULE_NAME', $module_name);
@@ -272,7 +272,7 @@ function shops_show_cat_list($parentid = 0)
         while ($parentid_i > 0) {
             list ($catid_i, $parentid_i, $title_i) = $db->query('SELECT catid, parentid, ' . NV_LANG_DATA . '_title FROM ' . $db_config['prefix'] . '_' . $module_data . '_catalogs WHERE catid=' . intval($parentid_i))->fetch(3);
 
-            $array_cat_title[] = "<a href=\"" . NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&" . NV_NAME_VARIABLE . "=" . $module_name . "&" . NV_OP_VARIABLE . "=cat&amp;parentid=" . $catid_i . "\"><strong>" . $title_i . "</strong></a>";
+            $array_cat_title[] = "<a href=\"" . NV_BASE_ADMINURL . "index.php?" . NV_NAME_VARIABLE . "=" . $module_name . "&" . NV_OP_VARIABLE . "=cat&amp;parentid=" . $catid_i . "\"><strong>" . $title_i . "</strong></a>";
 
             ++$a;
         }
@@ -307,7 +307,7 @@ function shops_show_cat_list($parentid = 0)
 
             $xtpl->assign('ROW', array(
                 'catid' => $catid,
-                'cat_link' => NV_BASE_ADMINURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=cat&amp;parentid=' . $catid,
+                'cat_link' => NV_BASE_ADMINURL . 'index.php?' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=cat&amp;parentid=' . $catid,
                 'title' => $title,
                 'numsubcat' => $numsubcat > 0 ? ' <span style="color:#FF0101;">(' . $numsubcat . ')</span>' : '',
                 'parentid' => $parentid
@@ -436,8 +436,6 @@ function shops_show_group_list($parentid = 0)
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('GLANG', $lang_global);
     $xtpl->assign('NV_BASE_ADMINURL', NV_BASE_ADMINURL);
-    $xtpl->assign('NV_LANG_VARIABLE', NV_LANG_VARIABLE);
-    $xtpl->assign('NV_LANG_DATA', NV_LANG_DATA);
     $xtpl->assign('NV_NAME_VARIABLE', NV_NAME_VARIABLE);
     $xtpl->assign('NV_OP_VARIABLE', NV_OP_VARIABLE);
     $xtpl->assign('MODULE_NAME', $module_name);
@@ -450,7 +448,7 @@ function shops_show_group_list($parentid = 0)
         while ($parentid_i > 0) {
             list ($groupid_i, $parentid_i, $title_i) = $db->query("SELECT groupid, parentid, " . NV_LANG_DATA . "_title FROM " . $db_config['prefix'] . "_" . $module_data . "_group WHERE groupid=" . intval($parentid_i))->fetch(3);
 
-            $array_group_title[] = "<a href=\"" . NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&" . NV_NAME_VARIABLE . "=" . $module_name . "&" . NV_OP_VARIABLE . "=group&amp;parentid=" . $groupid_i . "\"><strong>" . $title_i . "</strong></a>";
+            $array_group_title[] = "<a href=\"" . NV_BASE_ADMINURL . "index.php?" . NV_NAME_VARIABLE . "=" . $module_name . "&" . NV_OP_VARIABLE . "=group&amp;parentid=" . $groupid_i . "\"><strong>" . $title_i . "</strong></a>";
             ++$a;
         }
         for ($i = $a - 1; $i >= 0; $i--) {
@@ -483,7 +481,7 @@ function shops_show_group_list($parentid = 0)
 
             $xtpl->assign('ROW', array(
                 "groupid" => $groupid,
-                "group_link" => empty($parentid) ? NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&amp;" . NV_NAME_VARIABLE . "=" . $module_name . "&amp;" . NV_OP_VARIABLE . "=group&amp;parentid=" . $groupid : 'javascript:void(0)',
+                "group_link" => empty($parentid) ? NV_BASE_ADMINURL . "index.php?" . NV_NAME_VARIABLE . "=" . $module_name . "&amp;" . NV_OP_VARIABLE . "=group&amp;parentid=" . $groupid : 'javascript:void(0)',
                 "title" => $title,
                 "description" => $description,
                 "numsubgroup" => $numsubgroup > 0 ? " <span style=\"color:#FF0101;\">(" . $numsubgroup . ")</span>" : "",
@@ -551,7 +549,7 @@ function shops_show_group_list($parentid = 0)
  * @param integer $parentid
  * @return
  */
-function shops_show_location_list($parentid, $page, $per_page, $base_url)
+function shops_show_location_list($parentid = 0, $page, $per_page, $base_url)
 {
     global $db, $db_config, $lang_module, $lang_global, $module_name, $module_data, $op, $array_viewcat_nosub, $module_file, $global_config;
 
@@ -559,8 +557,6 @@ function shops_show_location_list($parentid, $page, $per_page, $base_url)
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('GLANG', $lang_global);
     $xtpl->assign('NV_BASE_ADMINURL', NV_BASE_ADMINURL);
-    $xtpl->assign('NV_LANG_VARIABLE', NV_LANG_VARIABLE);
-    $xtpl->assign('NV_LANG_DATA', NV_LANG_DATA);
     $xtpl->assign('NV_NAME_VARIABLE', NV_NAME_VARIABLE);
     $xtpl->assign('NV_OP_VARIABLE', NV_OP_VARIABLE);
     $xtpl->assign('MODULE_NAME', $module_name);
@@ -574,10 +570,10 @@ function shops_show_location_list($parentid, $page, $per_page, $base_url)
         while ($parentid_i > 0) {
             list ($id_i, $parentid_i, $title_i) = $db->query("SELECT id, parentid, title FROM " . $db_config['prefix'] . "_" . $module_data . "_location WHERE id=" . intval($parentid_i))->fetch(3);
 
-            $array_location_title[] = "<a href=\"" . NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&" . NV_NAME_VARIABLE . "=" . $module_name . "&" . NV_OP_VARIABLE . "=location&amp;parentid=" . $id_i . "\"><strong>" . $title_i . "</strong></a>";
+            $array_location_title[] = "<a href=\"" . NV_BASE_ADMINURL . "index.php?" . NV_NAME_VARIABLE . "=" . $module_name . "&" . NV_OP_VARIABLE . "=location&amp;parentid=" . $id_i . "\"><strong>" . $title_i . "</strong></a>";
             ++$a;
         }
-        $array_location_title[] = "<a href=\"" . NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&" . NV_NAME_VARIABLE . "=" . $module_name . "&" . NV_OP_VARIABLE . "=location\"><strong>" . $lang_module['location'] . "</strong></a>";
+        $array_location_title[] = "<a href=\"" . NV_BASE_ADMINURL . "index.php?" . NV_NAME_VARIABLE . "=" . $module_name . "&" . NV_OP_VARIABLE . "=location\"><strong>" . $lang_module['location'] . "</strong></a>";
         for ($i = $a; $i >= 0; $i--) {
             $xtpl->assign('LOCATION_NAV', $array_location_title[$i] . ($i > 0 ? " &raquo; " : ""));
             $xtpl->parse('main.locationnav.loop');
@@ -605,7 +601,7 @@ function shops_show_location_list($parentid, $page, $per_page, $base_url)
         while (list ($id, $parentid, $title, $weight, $numsub) = $result->fetch(3)) {
             $xtpl->assign('ROW', array(
                 "id" => $id,
-                "location_link" => NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&amp;" . NV_NAME_VARIABLE . "=" . $module_name . "&amp;" . NV_OP_VARIABLE . "=location&amp;parentid=" . $id,
+                "location_link" => NV_BASE_ADMINURL . "index.php?" . NV_NAME_VARIABLE . "=" . $module_name . "&amp;" . NV_OP_VARIABLE . "=location&amp;parentid=" . $id,
                 "title" => $title,
                 "numsub" => $numsub > 0 ? " <span style=\"color:#FF0101;\">(" . $numsub . ")</span>" : "",
                 "parentid" => $parentid
@@ -702,8 +698,6 @@ function nv_show_block_cat_list()
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('GLANG', $lang_global);
     $xtpl->assign('NV_BASE_ADMINURL', NV_BASE_ADMINURL);
-    $xtpl->assign('NV_LANG_VARIABLE', NV_LANG_VARIABLE);
-    $xtpl->assign('NV_LANG_DATA', NV_LANG_DATA);
     $xtpl->assign('NV_NAME_VARIABLE', NV_NAME_VARIABLE);
     $xtpl->assign('NV_OP_VARIABLE', NV_OP_VARIABLE);
     $xtpl->assign('MODULE_NAME', $module_name);
@@ -839,8 +833,6 @@ function nv_show_block_list($bid)
     $xtpl->assign('LANG', $lang_module);
     $xtpl->assign('GLANG', $lang_global);
     $xtpl->assign('NV_BASE_ADMINURL', NV_BASE_ADMINURL);
-    $xtpl->assign('NV_LANG_VARIABLE', NV_LANG_VARIABLE);
-    $xtpl->assign('NV_LANG_DATA', NV_LANG_DATA);
     $xtpl->assign('NV_NAME_VARIABLE', NV_NAME_VARIABLE);
     $xtpl->assign('NV_OP_VARIABLE', NV_OP_VARIABLE);
     $xtpl->assign('MODULE_NAME', $module_name);
@@ -1017,81 +1009,84 @@ function nv_show_custom_form($is_edit, $form, $array_custom)
     list($idtemplate, $titletemplate) = $db->query('SELECT id, ' . NV_LANG_DATA . '_title title FROM ' . $db_config['prefix'] . '_' . $module_data . '_template WHERE alias = "' . preg_replace("/[\_]/", "-", $form) . '"')->fetch(3);
     if ($idtemplate) {
         $array_tmp = array();
-        $result = $db->query('SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_field WHERE FIND_IN_SET(' . $idtemplate . ', listtemplate)');
+        $result = $db->query('SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_field');
         while ($row = $result->fetch()) {
-            if (!$is_edit) {
-                if ($row['field_type'] == 'date') {
-                    $array_custom[$row['field']] = ($row['field_choices']['current_date']) ? NV_CURRENTTIME : $row['default_value'];
-                } elseif ($row['field_type'] == 'number') {
-                    $array_custom[$row['field']] = $row['default_value'];
-                } else {
-                    if (!empty($row['field_choices'])) {
-                        $temp = array_keys($row['field_choices']);
-                        $tempkey = intval($row['default_value']) - 1;
-                        $array_custom[$row['field']] = (isset($temp[$tempkey])) ? $temp[$tempkey] : '';
+            $listtemplate = explode('|', $row['listtemplate']);
+            if (in_array($idtemplate, $listtemplate)) {
+                if (!$is_edit) {
+                    if ($row['field_type'] == 'date') {
+                        $array_custom[$row['field']] = ($row['field_choices']['current_date']) ? NV_CURRENTTIME : $row['default_value'];
+                    } elseif ($row['field_type'] == 'number') {
+                        $array_custom[$row['field']] = $row['default_value'];
+                    } else {
+                        if (!empty($row['field_choices'])) {
+                            $temp = array_keys($row['field_choices']);
+                            $tempkey = intval($row['default_value']) - 1;
+                            $array_custom[$row['field']] = (isset($temp[$tempkey])) ? $temp[$tempkey] : '';
+                        }
+                    }
+                } elseif (!empty($row['field_choices'])) {
+                    $row['field_choices'] = unserialize($row['field_choices']);
+                } elseif (!empty($row['sql_choices'])) {
+                    $row['sql_choices'] = explode('|', $row['sql_choices']);
+                    $query = 'SELECT ' . $row['sql_choices'][2] . ', ' . $row['sql_choices'][3] . ' FROM ' . $row['sql_choices'][1];
+                    $result_sql = $db->query($query);
+                    $weight = 0;
+                    while (list ($key, $val) = $result_sql->fetch(3)) {
+                        $row['field_choices'][$key] = $val;
                     }
                 }
-            } elseif (!empty($row['field_choices'])) {
-                $row['field_choices'] = unserialize($row['field_choices']);
-            } elseif (!empty($row['sql_choices'])) {
-                $row['sql_choices'] = explode('|', $row['sql_choices']);
-                $query = 'SELECT ' . $row['sql_choices'][2] . ', ' . $row['sql_choices'][3] . ' FROM ' . $row['sql_choices'][1];
-                $result_sql = $db->query($query);
-                $weight = 0;
-                while (list ($key, $val) = $result_sql->fetch(3)) {
-                    $row['field_choices'][$key] = $val;
+
+                if ($row['field_type'] == 'date') {
+                    $array_custom[$row['field']] = (empty($array_custom[$row['field']])) ? '' : date('d/m/Y', $array_custom[$row['field']]);
+                } elseif ($row['field_type'] == 'textarea') {
+                    $array_custom[$row['field']] = nv_htmlspecialchars(nv_br2nl($array_custom[$row['field']]));
+                } elseif ($row['field_type'] == 'editor') {
+                    $array_custom[$row['field']] = (empty($array_custom[$row['field']])) ? '' : htmlspecialchars(nv_editor_br2nl($array_custom[$row['field']]));
+                    $array_custom[$row['fid']] = !empty($array_custom[$row['fid']]) ? $array_custom[$row['fid']] : '';
+
+                    if (defined('NV_EDITOR') and nv_function_exists('nv_aleditor')) {
+                        $row['class'] = explode('@', $row['class']);
+                        $edits = nv_aleditor('custom[' . $row['fid'] . ']', $row['class'][0], $row['class'][1], $array_custom[$row['fid']]);
+                        $array_custom[$row['field']] = $edits;
+                    } else {
+                        $row['class'] = '';
+                    }
+                } elseif ($row['field_type'] == 'select') {
+                    foreach ($row['field_choices'] as $key => $value) {
+                        $xtpl->assign('OPTION', array(
+                            'key' => $key,
+                            'selected' => ($key == $array_custom[$row['fid']]) ? ' selected="selected"' : '',
+                            'title' => $value
+                        ));
+                        $xtpl->parse('main.select_' . $row['fid']);
+                    }
+                } elseif ($row['field_type'] == 'radio' or $row['field_type'] == 'checkbox') {
+                    $number = 0;
+                    foreach ($row['field_choices'] as $key => $value) {
+                        $xtpl->assign('OPTION', array(
+                            'id' => $row['fid'] . '_' . $number++,
+                            'key' => $key,
+                            'checked' => ($key == $array_custom[$row['field']]) ? ' checked="checked"' : '',
+                            'title' => $value
+                        ));
+
+                        $xtpl->parse('main.' . $row['field_type'] . '_' . $row['field']);
+                    }
+                } elseif ($row['field_type'] == 'multiselect') {
+                    foreach ($row['field_choices'] as $key => $value) {
+                        $xtpl->assign('OPTION', array(
+                            'key' => $key,
+                            'selected' => ($key == $array_custom[$row['field']]) ? ' selected="selected"' : '',
+                            'title' => $value
+                        ));
+                        $xtpl->parse('main.' . $row['field']);
+                    }
                 }
+
+                // Du lieu hien thi tieu de
+                $array_tmp[$row['fid']] = unserialize($row['language']);
             }
-
-            if ($row['field_type'] == 'date') {
-                $array_custom[$row['field']] = (empty($array_custom[$row['field']])) ? '' : date('d/m/Y', $array_custom[$row['field']]);
-            } elseif ($row['field_type'] == 'textarea') {
-                $array_custom[$row['field']] = nv_htmlspecialchars(nv_br2nl($array_custom[$row['field']]));
-            } elseif ($row['field_type'] == 'editor') {
-                $array_custom[$row['field']] = (empty($array_custom[$row['field']])) ? '' : htmlspecialchars(nv_editor_br2nl($array_custom[$row['field']]));
-                $array_custom[$row['fid']] = !empty($array_custom[$row['fid']]) ? $array_custom[$row['fid']] : '';
-
-                if (defined('NV_EDITOR') and nv_function_exists('nv_aleditor')) {
-                    $row['class'] = explode('@', $row['class']);
-                    $edits = nv_aleditor('custom[' . $row['fid'] . ']', $row['class'][0], $row['class'][1], $array_custom[$row['fid']]);
-                    $array_custom[$row['field']] = $edits;
-                } else {
-                    $row['class'] = '';
-                }
-            } elseif ($row['field_type'] == 'select') {
-                foreach ($row['field_choices'] as $key => $value) {
-                    $xtpl->assign('OPTION', array(
-                        'key' => $key,
-                        'selected' => ($key == $array_custom[$row['field']]) ? ' selected="selected"' : '',
-                        'title' => $value
-                    ));
-                    $xtpl->parse('main.select_' . $row['field']);
-                }
-            } elseif ($row['field_type'] == 'radio' or $row['field_type'] == 'checkbox') {
-                $number = 0;
-                foreach ($row['field_choices'] as $key => $value) {
-                    $xtpl->assign('OPTION', array(
-                        'id' => $row['fid'] . '_' . $number++,
-                        'key' => $key,
-                        'checked' => ($key == $array_custom[$row['field']]) ? ' checked="checked"' : '',
-                        'title' => $value
-                    ));
-
-                    $xtpl->parse('main.' . $row['field_type'] . '_' . $row['field']);
-                }
-            } elseif ($row['field_type'] == 'multiselect') {
-                foreach ($row['field_choices'] as $key => $value) {
-                    $xtpl->assign('OPTION', array(
-                        'key' => $key,
-                        'selected' => ($key == $array_custom[$row['field']]) ? ' selected="selected"' : '',
-                        'title' => $value
-                    ));
-                    $xtpl->parse('main.' . $row['field']);
-                }
-            }
-
-            // Du lieu hien thi tieu de
-            $array_tmp[$row['fid']] = unserialize($row['language']);
         }
 
         if (!empty($array_tmp)) {
@@ -1171,9 +1166,12 @@ function nv_create_form_file($array_template_id)
 
     foreach ($array_template_id as $templateids_i) {
         $array_views = array();
-        $result = $db->query("SELECT fid, field, field_type, listtemplate FROM " . $db_config['prefix'] . '_' . $module_data . "_field WHERE FIND_IN_SET(" . $templateids_i . ", listtemplate) ORDER BY weight");
+        $result = $db->query("SELECT fid, field, field_type, listtemplate FROM " . $db_config['prefix'] . '_' . $module_data . "_field");
         while ($column = $result->fetch()) {
-            $array_views[$column['fid']] = $column;
+            $column['listtemplate'] = explode('|', $column['listtemplate']);
+            if (in_array($templateids_i, $column['listtemplate'])) {
+                $array_views[$column['fid']] = $column;
+            }
         }
 
         $array_field_js = array();
@@ -1210,7 +1208,9 @@ function nv_create_form_file($array_template_id)
 
                 if (isset($array_requireds[$key])) {
                     $content_2 .= 'required="required" ';
-                    $content_2 .= "oninvalid=\"setCustomValidity( nv_required )\" oninput=\"setCustomValidity('')\" ";
+                    if ($oninvalid) {
+                        $content_2 .= "oninvalid=\"setCustomValidity( nv_required )\" oninput=\"setCustomValidity('')\" ";
+                    }
                 }
                 $content_2 .= ">{OPTION.title} &nbsp;</label>\n";
                 $content_2 .= "\t\t\t\t\t<!-- END: " . $type_html . "_" . $key . " -->\n";

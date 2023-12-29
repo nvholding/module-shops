@@ -11,9 +11,9 @@
 if (!defined('NV_IS_MOD_SHOPS')) {
     die('Stop!!!');
 }
-if (!defined('NV_IS_AJAX')) {
+ if (!defined('NV_IS_AJAX')) {
     die('Wrong URL');
-}
+} 
 
 if (!isset($_SESSION[$module_data . '_cart'])) {
     $_SESSION[$module_data . '_cart'] = [];
@@ -80,7 +80,7 @@ if (!is_numeric($num) or $num < 0) {
         }
     }
 }
-
+//print_r($_SESSION[$module_data . '_cart']);die;
 include NV_ROOTDIR . '/includes/header.php';
 echo nv_unhtmlspecialchars($contents_msg);
 include NV_ROOTDIR . '/includes/footer.php';

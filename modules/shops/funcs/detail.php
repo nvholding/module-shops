@@ -23,7 +23,7 @@ if ($nv_Request->isset_request('check_quantity', 'post')) {
     asort($listid);
 
     $quantity = $db->query('SELECT quantity FROM ' . $db_config['prefix'] . '_' . $module_data . '_group_quantity WHERE pro_id = ' . $id_pro . ' AND listgroup="' . implode(',', $listid) . '"')->fetchColumn();
-    if (empty($quantity)) {
+    if (empty($quantity) && !empty($pro_config['active_warehouse']) ) {
         $sum = 0;
         $count = 0;
         $listgroupid = GetGroupID($id_pro, 1);
@@ -55,6 +55,21 @@ if ($nv_Request->isset_request('check_quantity', 'post')) {
         } else {
             die('NO_0_' . $lang_module['detail_pro_number'] . ': ' . $sum . ' ' . $unit);
         }
+    } elseif (empty($quantity) && empty($pro_config['active_warehouse']) ) {
+        $sum = 0;
+        $count = 0;
+        
+
+        $result = $db->query('SELECT product_number FROM ' . $db_config['prefix'] . '_' . $module_data . '_rows WHERE id = ' . $id_pro);
+        while (list ($product_number) = $result->fetch(3)) {
+                $sum += $product_number;
+        }
+
+        if ($sum == 0 or $count == sizeof($listid)) {
+            die('NO_0_' . $count);
+        } else {
+            die('OK_' . $sum . '_' . $lang_module['detail_pro_number'] . ': ' . $sum . ' ' . $unit);
+        }
     } else {
         die('OK_' . $quantity . '_' . $lang_module['detail_pro_number'] . ': ' . $quantity . ' ' . $unit);
     }
@@ -67,7 +82,7 @@ $compare_id = unserialize($compare_id);
 $contents = '';
 $publtime = 0;
 
-$sql = $db->query('SELECT * FROM ' . $db_config['prefix'] . '_' . $module_data . '_rows WHERE ' . NV_LANG_DATA . '_alias = ' . $db->quote($alias_url) . ' AND status=1');
+$sql = $db->query('SELECT * FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_rows WHERE ' . NV_LANG_DATA . '_alias = ' . $db->quote($alias_url) . ' AND status=1');
 $data_content = $sql->fetch();
 if (empty($data_content)) {
     $nv_redirect = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name;
@@ -80,7 +95,26 @@ $data_content['array_custom_template'] = [];
 $data_content['array_custom_lang'] = [];
 $data_content['template'] = [];
 $idtemplates = [];
+//info shop 
+$sql = 'SELECT t1.avatar_image, t1.company_name, t1.cover_image, t1.time_add, t2.username FROM '. $db_config['prefix'] . '_' . $module_data . '_seller_management t1 INNER JOIN ' . $db_config['prefix'] . '_users t2 ON t1.userid = t2.userid where t1.status=1 AND t1.id = ' . $data_content['idsite'] . ' ';
 
+$data_shop_info = $db->query($sql)->fetch();
+$data_shop_info['alias'] = nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $data_shop_info['username'], true );
+	
+// tổng số sản phẩm của cửa hàng
+	$data_shop_info['number_product'] = $db->query('SELECT count(id) as count FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_rows WHERE idsite='. $data_content['idsite'] .' AND inhome = 1')->fetchColumn();
+	
+	// tổng số người theo dõi cửa hàng
+	$data_shop_info['number_fllow'] = $db->query('SELECT count(id) as count FROM ' . $db_config['dbsystem'] . '.' . $db_config['prefix'] . '_' . $module_data . '_follow WHERE shop_id='. $data_content['idsite'])->fetchColumn();
+	
+	
+	$data_shop_info['time_add'] = date('d/m/Y',$data_shop_info['time_add']);
+	$data_shop_info['number_fllow'] = number_format($data_shop_info['number_fllow']);
+	if (!empty($data_shop_info['avatar_image'])) {
+        $data_shop_info['avatar_image'] = NV_BASE_SITEURL . NV_UPLOADS_DIR . '/' . $module_upload . '/' . $data_shop_info['avatar_image'];
+    } else {
+        $data_shop_info['avatar_image'] = NV_STATIC_URL . 'themes/default/images/' . $module_file . '/no-image.jpg';
+    }
 // Dữ liệu tùy biến
 if ($global_array_shops_cat[$data_content['listcatid']]['form'] != '') {
     $array_forms = explode(',', $global_array_shops_cat[$data_content['listcatid']]['form']);
@@ -100,25 +134,45 @@ if ($global_array_shops_cat[$data_content['listcatid']]['form'] != '') {
                 if (in_array($idtemplate, $listtemplate)) {
                     $idtemplates[] = $idtemplate;
                     $listfield[] = $row['fid'];
-                    $array_tmp[$row['field']] = unserialize($row['language']);
+					$array_tmp[$row['field']] = unserialize($row['language']);
+				
                 }
             }
 
             if (!empty($listfield)) {
-                $result = $db->query('SELECT t1.field_value, t2.field, t2.listtemplate FROM ' . $db_config['prefix'] . "_" . $module_data . "_field_value_" . NV_LANG_DATA . ' t1
+                $result = $db->query('SELECT t1.field_value, t2.field, t2.listtemplate, t2.field_choices, t2.sql_choices FROM ' . $db_config['prefix'] . "_" . $module_data . "_field_value_" . NV_LANG_DATA . ' t1
                 INNER JOIN ' . $db_config['prefix'] . '_' . $module_data . '_field t2 WHERE t1.field_id=t2.fid AND t1.rows_id=' . $id);
-                $data_content['template'][$cat_form['id']] = $cat_form;
+                $data_content['template'][] = $cat_form;
                 while ($row = $result->fetch()) {
+					
                     // Xếp theo danh sách
-                    $data_content['array_custom'][$row['field']] = $row['field_value'];
-
+					if (!empty($row['field_choices'])) {
+						$row['field_choices'] = unserialize($row['field_choices']);
+						foreach ($row['field_choices'] as $key => $value) {
+							if($key == $row['field_value']){
+								$data_content['array_custom'][$row['field']] = $value;
+							}
+						}
+						
+						
+					} elseif (!empty($row['sql_choices'])) {
+						$row['sql_choices'] = explode('|', $row['sql_choices']);
+						$query = 'SELECT ' . $row['sql_choices'][2] . ', ' . $row['sql_choices'][3] . ' FROM ' . $row['sql_choices'][1];
+						$result_sql = $db->query($query);
+						$weight = 0;
+						while (list ($key, $val) = $result_sql->fetch(3)) {
+							$row['field_choices'][$key] = $val;
+						}
+					}else{
+						$data_content['array_custom'][$row['field']] = $row['field_value'];
+					}
                     // Xếp theo nhóm
                     $row['listtemplate'] = explode(',', $row['listtemplate']);
                     foreach ($row['listtemplate'] as $_tid) {
                         $data_content['array_custom_template'][$_tid][$row['field']] = $row['field_value'];
                     }
                 }
-
+				
                 if (!empty($array_tmp)) {
                     foreach ($array_tmp as $f_key => $field) {
                         foreach ($field as $key_lang => $lang_data) {
@@ -140,7 +194,7 @@ $array_images = [];
 
 if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
     $popup = $nv_Request->get_int('popup', 'post,get', 0);
-
+	
     $time_set = $nv_Request->get_int($module_data . '_' . $op . '_' . $id, 'session');
     if (empty($time_set)) {
         $nv_Request->set_Session($module_data . '_' . $op . '_' . $id, NV_CURRENTTIME);
@@ -193,12 +247,12 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
     // Ảnh chính
     $homeimgfile = $data_content['homeimgfile'];
     if ($data_content['homeimgthumb'] == 1) {
-        $data_content['homeimgthumb'] = NV_BASE_SITEURL . NV_FILES_DIR . '/' . $module_upload . '/' . $homeimgfile;
-        $data_content['homeimgfile'] = NV_BASE_SITEURL . NV_UPLOADS_DIR . '/' . $module_upload . '/' . $homeimgfile;
+        $data_content['homeimgthumb'] = NV_BASE_SITEURL . NV_FILES_DIR . '/' . $data_shop_info['username'] . '/' . $module_upload . '/' . $homeimgfile;
+        $data_content['homeimgfile'] = NV_BASE_SITEURL . NV_UPLOADS_DIR . '/' . $data_shop_info['username'] . '/' . $module_upload . '/' . $homeimgfile;
     } elseif ($data_content['homeimgthumb'] == 2) {
-        $data_content['homeimgthumb'] = $data_content['homeimgfile'] = NV_BASE_SITEURL . NV_UPLOADS_DIR . '/' . $module_upload . '/' . $homeimgfile;
+        $data_content['homeimgthumb'] = $data_content['homeimgfile'] = NV_BASE_SITEURL . NV_UPLOADS_DIR . '/' . $$data_shop_info['username'] . '/' . $module_upload . '/' . $homeimgfile;
     } elseif ($data_content['homeimgthumb'] == 3) {
-        $data_content['homeimgthumb'] = $data_content['homeimgfile'] = $homeimgfile;
+        $data_content['homeimgthumb'] = $data_shop_info['username'] . '/' . $data_content['homeimgfile'] = $homeimgfile;
     } else {
         $data_content['homeimgthumb'] = $data_content['homeimgfile'] = NV_STATIC_URL . 'themes/' . $module_info['template'] . '/images/' . $module_file . '/no-image.jpg';
     }
@@ -375,7 +429,7 @@ if (nv_user_in_groups($global_array_shops_cat[$catid]['groups_view'])) {
     unset($array_images, $data_content['homeimgfile'], $data_content['otherimage']);
     $data_content['full_link'] = NV_MY_DOMAIN . nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $global_array_shops_cat[$data_content['listcatid']]['alias'] . '/' . $data_content[NV_LANG_DATA . '_alias'] . $global_config['rewrite_exturl'], true);
 
-    $contents = nv_template_detail($data_content, $data_unit, $data_others, $array_other_view, $content_comment, $compare_id, $popup, $idtemplates, $array_keyword);
+    $contents = nv_template_detail($data_content, $data_unit, $data_others, $array_other_view, $content_comment, $compare_id, $popup, $idtemplates, $array_keyword, $data_shop_info);
 } else {
     $nv_redirect = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name;
     redict_link($lang_module['detail_no_permission'], $lang_module['redirect_to_back_shops'], $nv_redirect);

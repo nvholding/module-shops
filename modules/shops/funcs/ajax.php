@@ -25,3 +25,10 @@ if ($nv_Request->isset_request('changeviewtype', 'post')) {
     $nv_Cache->delMod($module_name);
     die('OK');
 }
+
+if ($nv_Request->isset_request('changeviewcustom', 'post')) {
+    $viewcustom = $nv_Request->get_string('viewcustom', 'post', '');
+    $nv_Request->set_Session('viewcustom', $viewcustom, NV_LIVE_SESSION_TIME);
+    $nv_Cache->delMod($module_name);
+    die('OK');
+}
